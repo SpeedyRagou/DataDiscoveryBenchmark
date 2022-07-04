@@ -1,0 +1,1 @@
+include fastsklearnfeature/configuration/resources/*.properties
