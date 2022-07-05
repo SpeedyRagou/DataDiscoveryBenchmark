@@ -6,14 +6,13 @@ import json
 
 con = duckdb.connect(database=':memory:')
 
-d = {'col1': [1, 2], 'col2': [3, 4]}
-
 cell_values = []
 table_ids = []
 column_ids = []
 row_ids = []
 
 data = []
+#download http://wwwdb.inf.tu-dresden.de/misc/dwtc/data_feb15/dwtc-000.json.gz
 with gzip.open('/home/neutatz/Downloads/dwtc-000.json.gz', 'rt') as f:
     for line in f:
         json_data = json.loads(line)
