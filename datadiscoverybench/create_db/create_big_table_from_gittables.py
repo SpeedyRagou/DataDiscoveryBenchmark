@@ -23,7 +23,7 @@ for zip_path in glob.glob(path + "/*.zip"):
                 table_name = file.split('/')[-1].split('.')[0]
                 df = pd.read_csv(zf.open(file), delimiter=',', index_col=0)
                 values = df.values
-                print(values)
+                #print(values)
                 for row_id in range(values.shape[0]):
                     for column_id in range(values.shape[1]):
                         cell_values.append(str(values[row_id,column_id]))
