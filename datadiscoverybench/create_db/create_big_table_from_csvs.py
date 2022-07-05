@@ -10,6 +10,8 @@ column_ids = []
 row_ids = []
 
 
+gittables_path = "/home/neutatz/Software/DataDiscoveryBenchmark/data/git_tables_small/*.csv"
+
 for csv_path in glob.glob("/home/neutatz/Software/DataDiscoveryBenchmark/data/git_tables_small/*.csv"):
     try:
         table_name = csv_path.split('/')[-1].split('.')[0]

@@ -20,7 +20,8 @@ setup(
     license=license,
     install_requires=["numpy",
                       "pandas",
-                      "duckdb"
+                      "duckdb",
+                      "pyarrow"
                       ],
     packages=find_packages(exclude=('tests', 'docs'))
 )
