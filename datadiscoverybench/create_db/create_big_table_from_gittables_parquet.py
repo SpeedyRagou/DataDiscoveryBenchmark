@@ -24,6 +24,7 @@ for zip_path in glob.glob(path + "/*.zip"):
             try:
                 table_name = zip_path.split('/')[-1].split('.')[0] + '_' + file.split('.')[0]
                 # TODO:detect header
+                # TODO: unify representation of None / NAN / ...
                 df = pq.read_table(zf.open(file)).to_pandas()#TODO:detect index column => save space
                 values = df.values
                 for row_id in range(values.shape[0]):
