@@ -1,8 +1,14 @@
 import duckdb
+import time
 # to start an in-memory database
 con = duckdb.connect(database=':memory:')
 
-con.execute("IMPORT DATABASE '/home/neutatz/Software/DataDiscoveryBenchmark/data/db/';")
+start = time.time()
+
+#con.execute("IMPORT DATABASE '/home/neutatz/Software/DataDiscoveryBenchmark/data/db/';")
+con.execute("IMPORT DATABASE '/home/felix/duckdb/db/';")
+
+print('time to load the db: ' + str(time.time() - start))
 
 
 print(con.execute("SHOW TABLES;").fetchall())
