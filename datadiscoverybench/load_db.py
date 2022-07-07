@@ -6,7 +6,8 @@ con = duckdb.connect(database=':memory:')
 start = time.time()
 
 #con.execute("IMPORT DATABASE '/home/neutatz/Software/DataDiscoveryBenchmark/data/db/';")
-con.execute("IMPORT DATABASE '/home/felix/duckdb/gittables/db/';")
+#con.execute("IMPORT DATABASE '/home/felix/duckdb/gittables/db/';")
+con.execute("IMPORT DATABASE '/home/felix/duckdb/dresden/db/';")
 
 print('time to load the db: ' + str(time.time() - start))
 
