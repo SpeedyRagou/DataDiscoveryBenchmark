@@ -5,11 +5,6 @@ import gzip
 import json
 import pickle
 
-cell_values = []
-table_ids = []
-column_ids = []
-row_ids = []
-
 path = '/home/mahdi/DWTC_json'
 my_path = '/home/felix/duckdb'
 
@@ -24,6 +19,12 @@ cell_value2id = {}
 data = []
 #download http://wwwdb.inf.tu-dresden.de/misc/dwtc/data_feb15/dwtc-000.json.gz
 for zip_path in glob.glob(path + "/*.json.gz"):
+
+    cell_values = []
+    table_ids = []
+    column_ids = []
+    row_ids = []
+
     with gzip.open(zip_path, 'rt') as f:
         for line in f:
             json_data = json.loads(line)
@@ -43,17 +44,17 @@ for zip_path in glob.glob(path + "/*.json.gz"):
                     row_ids.append(row_id)
             table_id += 1
 
+    d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
+    df = pd.DataFrame(data=d)
 
-pickle.dump(cell_value2id, open(my_path + '/dresden/import/dict.pickle','wb+'))
+    df['CellValue'] = df['CellValue'].astype('int')
+    df['TableId'] = df['TableId'].astype('int')
+    df['ColumnId'] = df['ColumnId'].astype('int')
+    df['RowId'] = df['RowId'].astype('int')
+    df.to_parquet(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
 
-d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
-df = pd.DataFrame(data=d)
 
-df['CellValue'] = df['CellValue'].astype('int')
-df['TableId'] = df['TableId'].astype('int')
-df['ColumnId'] = df['ColumnId'].astype('int')
-df['RowId'] = df['RowId'].astype('int')
-df.to_parquet(my_path + '/dresden/import/all.parquet')
+pickle.dump(cell_value2id, open(my_path + '/dresden/import/dict.pickle', 'wb+'))
 
 con = duckdb.connect(database=':memory:')
 con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/dresden/import/*.parquet';")
