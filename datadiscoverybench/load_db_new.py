@@ -5,11 +5,11 @@ import pickle
 con = duckdb.connect(database=':memory:')
 
 start = time.time()
+my_path = '/home/felix/duckdb'
 
 #con.execute("IMPORT DATABASE '/home/neutatz/Software/DataDiscoveryBenchmark/data/db/';")
 #con.execute("IMPORT DATABASE '/home/felix/duckdb/gittables/db/';")
-con.execute("CREATE TABLE AllTables(CellValue UINTEGER, TableId UINTEGER, ColumnId UINTEGER, RowId UINTEGER);")
-con.execute("COPY AllTables FROM '/home/felix/duckdb/dresden/import/*.parquet';")
+con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/dresden/import/*.parquet';")
 
 print('time to load the db: ' + str(time.time() - start))
 
