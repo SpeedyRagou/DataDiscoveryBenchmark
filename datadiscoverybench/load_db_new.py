@@ -10,8 +10,8 @@ start = time.time()
 my_path = '/home/felix/duckdb'
 
 
-con.execute("CREATE TABLE AllTablesTemp(CellValue UINTEGER, TableId UINTEGER, ColumnId USMALLINT, RowId UINTEGER);")
-con.execute("CREATE TABLE AllTables AS SELECT * FROM AllTablesTemp UNION SELECT * FROM read_parquet('" + my_path + "/dresden/import/*.parquet');")
+con.execute("CREATE TABLE AllTables(CellValue UINTEGER, TableId UINTEGER, ColumnId USMALLINT, RowId UINTEGER);")
+con.execute("INSERT INTO AllTables SELECT * FROM read_parquet('" + my_path + "/dresden/import/*.parquet');")
 
 print('schema: ' + str(con.execute("DESCRIBE AllTables;").fetchall()))
 
