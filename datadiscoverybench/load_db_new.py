@@ -5,18 +5,16 @@ import pickle
 con = duckdb.connect(database=':memory:')
 
 start = time.time()
-my_path = '/home/felix/duckdb'
 
-#con.execute("IMPORT DATABASE '/home/neutatz/Software/DataDiscoveryBenchmark/data/db/';")
-#con.execute("IMPORT DATABASE '/home/felix/duckdb/gittables/db/';")
-con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/dresden/import/*.parquet';")
-
-print('time to load the db: ' + str(time.time() - start))
+my_path = '/home/neutatz/Software/DataDiscoveryBenchmark/data'
+#my_path = '/home/felix/duckdb'
 
 
-#print(con.execute("SELECT COUNT(*) FROM AllTables WHERE CellValue='US';").fetchall())
-print('show number of tables: ' + str(con.execute("SELECT COUNT(DISTINCT TableId) AS some_alias FROM AllTables;").fetchall()))
-#print(len(data))
+con.execute("CREATE TABLE AllTablesTemp(CellValue UINTEGER, TableId UINTEGER, ColumnId USMALLINT, RowId UINTEGER);")
+con.execute("CREATE TABLE AllTables AS SELECT * FROM AllTablesTemp UNION SELECT * FROM read_parquet('" + my_path + "/dresden/import/*.parquet');")
+
+print('schema: ' + str(con.execute("DESCRIBE AllTables;").fetchall()))
+
 
 print('max table_id: ' + str(con.execute("SELECT MAX(TableId) AS some_alias FROM AllTables;").fetchall()))
 print('max cell value: ' + str(con.execute("SELECT MAX(CellValue) AS some_alias FROM AllTables;").fetchall()))
