@@ -6,8 +6,8 @@ con = duckdb.connect(database=':memory:')
 
 start = time.time()
 
-my_path = '/home/neutatz/Software/DataDiscoveryBenchmark/data'
-#my_path = '/home/felix/duckdb'
+#my_path = '/home/neutatz/Software/DataDiscoveryBenchmark/data'
+my_path = '/home/felix/duckdb'
 
 
 con.execute("CREATE TABLE AllTablesTemp(CellValue UINTEGER, TableId UINTEGER, ColumnId USMALLINT, RowId UINTEGER);")
