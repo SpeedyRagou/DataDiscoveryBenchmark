@@ -12,6 +12,8 @@ my_path = '/home/felix/duckdb'
 
 con.execute("CREATE TABLE AllTables(CellValue UINTEGER, TableId UINTEGER, ColumnId USMALLINT, RowId UINTEGER);")
 con.execute("INSERT INTO AllTables SELECT * FROM read_parquet('" + my_path + "/dresden/import/*.parquet');")
+con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
+con.execute("EXPORT DATABASE '" + my_path + "/dresden/db/' (FORMAT PARQUET);")
 
 print('schema: ' + str(con.execute("DESCRIBE AllTables;").fetchall()))
 
