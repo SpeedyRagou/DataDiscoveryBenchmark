@@ -27,3 +27,8 @@ print(con.execute("SHOW TABLES;").fetchall())
 #print(con.execute("SELECT COUNT(*) FROM AllTables WHERE CellValue='US';").fetchall())
 print('show number of tables: ' + str(con.execute("SELECT COUNT(DISTINCT TableId) AS some_alias FROM AllTables;").fetchall()))
 print(len(data))
+
+print('max table_id: ' + str(con.execute("SELECT MAX(TableId) AS some_alias FROM AllTables;").fetchall()))
+print('max cell value: ' + str(con.execute("SELECT MAX(CellValue) AS some_alias FROM AllTables;").fetchall()))
+print('max ColumnId: ' + str(con.execute("SELECT MAX(ColumnId) AS some_alias FROM AllTables;").fetchall()))
+print('max RowId: ' + str(con.execute("SELECT MAX(RowId) AS some_alias FROM AllTables;").fetchall()))
