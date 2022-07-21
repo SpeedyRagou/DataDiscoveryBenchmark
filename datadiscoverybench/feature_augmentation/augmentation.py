@@ -40,7 +40,7 @@ load_dresden_db(con)
 
 length_before = len(data)
 augmentation_time_start = time.time()
-data = augment(data, column_name='originalTitle', id_column_name=dataset.id_column_name)
+data = augment(con, data, column_name='originalTitle', id_column_name=dataset.id_column_name)
 augmentation_time = time.time() - augmentation_time_start
 assert length_before == len(data), "There number of rows is different after augmentation"
 print(data.columns)
