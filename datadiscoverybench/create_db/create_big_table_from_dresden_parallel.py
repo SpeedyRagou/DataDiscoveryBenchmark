@@ -4,14 +4,18 @@ import pandas as pd
 import gzip
 import json
 import multiprocessing
+from functools import partial
+import os
 
 #path = '/home/mahdi/DWTC_json'
 #my_path = '/home/felix/duckdb'
 
-path = '/home/neutatz/Software/DataDiscoveryBenchmark/data/dresden'
-my_path = '/home/felix/duckdb'
+#path = '/home/neutatz/Software/DataDiscoveryBenchmark/data/dresden'
+#my_path = '/home/felix/duckdb'
 
-def zip2parquet(zip_path):
+
+
+def zip2parquet(zip_path, my_path=None):
     cell_values = []
     table_ids = []
     column_ids = []
@@ -21,7 +25,7 @@ def zip2parquet(zip_path):
         for line in f:
             json_data = json.loads(line)
             #print(json_data['id'])
-            print(json_data)
+            #print(json_data)
 
             #todo fix table header situation
             for row_id in range(len(json_data['relation'])):
@@ -31,18 +35,22 @@ def zip2parquet(zip_path):
                     column_ids.append(column_id)
                     row_ids.append(row_id)
 
-'''
+
     d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
     df = pd.DataFrame(data=d)
     df.to_parquet(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
-'''
 
+def create_db(dir_path):
+    my_path = dir_path + '/data'
 
-con = duckdb.connect(database=':memory:')
+    if not os.path.isdir(dir_path + '/data/dresden/import'):
+        os.mkdir(dir_path + '/data/dresden/import')
 
-pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-pool.map(zip2parquet, glob.glob(path + "/*.json.gz"))
+    con = duckdb.connect(database=':memory:')
 
-con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/dresden/import/*.parquet';")
-con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
-con.execute("EXPORT DATABASE '" + my_path + "/dresden/db/' (FORMAT PARQUET);")
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    pool.map(partial(zip2parquet, my_path=my_path), glob.glob(my_path + "/dresden/data/*.json.gz"))
+
+    con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/dresden/import/*.parquet';")
+    con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
+    con.execute("EXPORT DATABASE '" + my_path + "/dresden/db/' (FORMAT PARQUET);")

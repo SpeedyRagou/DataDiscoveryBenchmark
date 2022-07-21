@@ -38,6 +38,8 @@ def zip2parquet(zip_path):
 
     d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
     df = pd.DataFrame(data=d)
+    df['ColumnId'] = df['ColumnId'].astype('int')
+    df['RowId'] = df['RowId'].astype('int')
     df.to_parquet(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
 
 con = duckdb.connect(database=':memory:')
