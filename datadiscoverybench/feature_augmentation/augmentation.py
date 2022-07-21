@@ -4,13 +4,10 @@ from autogluon.tabular import TabularDataset, TabularPredictor
 from sklearn.metrics import mean_squared_error, r2_score
 import duckdb
 import time
-from datadiscoverybench.utils import dir_path
+from datadiscoverybench.utils import load_dresden_db
 from datadiscoverybench.feature_augmentation.imdb.IMDB_Dataset import IMDB
 
-def augment(df: pd.DataFrame, column_name: str, id_column_name: str) -> pd.DataFrame:
-    con = duckdb.connect(database=':memory:')
-    con.execute("IMPORT DATABASE '" + dir_path + "/data/dresden/db';")
-
+def augment(con, df: pd.DataFrame, column_name: str, id_column_name: str) -> pd.DataFrame:
     result = con.execute('''
                             SELECT df.*, 
                                    TEMPT1.Feature 
@@ -35,6 +32,9 @@ data = dataset.get_df()
 
 y = data['averageRating'].values
 data.drop(['averageRating'], axis=1, inplace=True, errors='ignore')
+
+con = duckdb.connect(database=':memory:')
+load_dresden_db(con)
 
 #augment
 
