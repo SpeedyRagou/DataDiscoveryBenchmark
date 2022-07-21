@@ -4,7 +4,6 @@ from setuptools import setup, find_packages
 import os
 from datadiscoverybench.utils import dir_path
 import urllib.request
-from datadiscoverybench.create_db.create_big_table_from_dresden_parallel import create_db
 
 with open('README.rst') as f:
     readme = f.read()
@@ -33,6 +32,7 @@ setup(
 )
 
 
+from datadiscoverybench.create_db.create_big_table_from_dresden_parallel import create_db
 
 if not os.path.isdir(dir_path + '/data'):
     os.mkdir(dir_path + '/data')
