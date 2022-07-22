@@ -4,14 +4,15 @@ from zipfile import ZipFile
 import pyarrow.parquet as pq
 import pandas as pd
 import multiprocessing
+from functools import partial
 
 #path = "/home/neutatz/Software/DataDiscoveryBenchmark/data/git_parquet"
-path = "/home/mahdi/gittable2022/GitTable2022_parquet"
+#path = "/home/mahdi/gittable2022/GitTable2022_parquet"
 
 #my_path = '/home/neutatz/Software/DataDiscoveryBenchmark/data/new_git_parallel'
-my_path = '/home/felix/duckdb'
+#my_path = '/home/felix/duckdb'
 
-def zip2parquet(zip_path):
+def zip2parquet(zip_path, my_path=None):
     cell_values = []
     table_ids = []
     column_ids = []
@@ -42,11 +43,15 @@ def zip2parquet(zip_path):
     df['RowId'] = df['RowId'].astype('int')
     df.to_parquet(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
 
-con = duckdb.connect(database=':memory:')
 
-pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-pool.map(zip2parquet, glob.glob(path + "/*.zip"))
+def create_db(dir_path):
+    my_path = dir_path + '/data'
 
-con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/gittables/import/*.parquet';")
-con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
-con.execute("EXPORT DATABASE '" + my_path + "/gittables/db/' (FORMAT PARQUET);")
+    pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
+    pool.map(partial(zip2parquet, my_path=my_path), glob.glob(my_path + "/gittables/data/*.zip"))
+
+    con = duckdb.connect(database=':memory:')
+    con.execute("CREATE TABLE AllTables(CellValue VARCHAR, TableId VARCHAR, ColumnId USMALLINT, RowId UINTEGER);")
+    con.execute("INSERT INTO AllTables SELECT * FROM read_parquet('" + my_path + "/gittables/import/*.parquet');")
+    con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
+    con.execute("EXPORT DATABASE '" + my_path + "/gittables/db/' (FORMAT PARQUET);")

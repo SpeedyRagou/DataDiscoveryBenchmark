@@ -43,14 +43,12 @@ def zip2parquet(zip_path, my_path=None):
 def create_db(dir_path):
     my_path = dir_path + '/data'
 
-    if not os.path.isdir(dir_path + '/data/dresden/import'):
-        os.mkdir(dir_path + '/data/dresden/import')
-
     con = duckdb.connect(database=':memory:')
 
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     pool.map(partial(zip2parquet, my_path=my_path), glob.glob(my_path + "/dresden/data/*.json.gz"))
 
-    con.execute("CREATE TABLE AllTables AS SELECT * FROM '" + my_path + "/dresden/import/*.parquet';")
+    con.execute("CREATE TABLE AllTables(CellValue VARCHAR, TableId UINTEGER, ColumnId USMALLINT, RowId UINTEGER);")
+    con.execute("INSERT INTO AllTables SELECT * FROM read_parquet('" + my_path + "/dresden/import/*.parquet');")
     con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
     con.execute("EXPORT DATABASE '" + my_path + "/dresden/db/' (FORMAT PARQUET);")

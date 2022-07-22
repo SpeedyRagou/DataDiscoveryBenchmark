@@ -5,9 +5,10 @@ from sklearn.metrics import mean_squared_error, r2_score
 import duckdb
 import time
 from datadiscoverybench.utils import load_dresden_db
+from datadiscoverybench.utils import load_git_tables_db
 from datadiscoverybench.feature_augmentation.imdb.IMDB_Dataset import IMDB
 
-def augment(con, df: pd.DataFrame, column_name: str, id_column_name: str) -> pd.DataFrame:
+def augment(con: duckdb.DuckDBPyConnection, df: pd.DataFrame, column_name: str, id_column_name: str) -> pd.DataFrame:
     result = con.execute('''
                             SELECT df.*, 
                                    TEMPT1.Feature 
@@ -35,6 +36,7 @@ data.drop(['averageRating'], axis=1, inplace=True, errors='ignore')
 
 con = duckdb.connect(database=':memory:')
 load_dresden_db(con)
+#load_git_tables_db(con)
 
 #augment
 
