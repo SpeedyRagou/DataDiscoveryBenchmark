@@ -3,6 +3,8 @@ from datadiscoverybench.create_db.create_big_table_from_dresden_parallel import 
 from datadiscoverybench.create_db.create_big_table_from_gittables_parquet_parallel import create_db as create_gittables_db
 import urllib.request
 
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 
 dir_path = os.path.dirname(os.path.realpath(__file__))
 

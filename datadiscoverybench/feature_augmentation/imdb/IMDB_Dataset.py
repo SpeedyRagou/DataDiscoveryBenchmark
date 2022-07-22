@@ -5,6 +5,9 @@ import pandas as pd
 import duckdb
 from datadiscoverybench.utils import dir_path
 
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
 class IMDB(Dataset):
 
     def __init__(self):
