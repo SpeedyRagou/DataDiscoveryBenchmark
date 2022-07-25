@@ -41,6 +41,7 @@ def zip2parquet(zip_path, my_path=None):
     df.to_parquet(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
 
 def create_db(dir_path):
+    multiprocessing.set_start_method('fork')
     my_path = dir_path + '/data'
 
     con = duckdb.connect(database=':memory:')

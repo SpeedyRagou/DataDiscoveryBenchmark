@@ -45,6 +45,7 @@ def zip2parquet(zip_path, my_path=None):
 
 
 def create_db(dir_path):
+    multiprocessing.set_start_method('fork')
     my_path = dir_path + '/data'
 
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())

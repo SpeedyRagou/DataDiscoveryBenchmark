@@ -35,8 +35,8 @@ y = data['averageRating'].values
 data.drop(['averageRating'], axis=1, inplace=True, errors='ignore')
 
 con = duckdb.connect(database=':memory:')
-load_dresden_db(con)
-#load_git_tables_db(con)
+#load_dresden_db(con)
+load_git_tables_db(con)
 
 #augment
 

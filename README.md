@@ -19,3 +19,8 @@ You can run the feature augmentation task with:
 ```
 python datadiscoverybench/feature_augmentation/augmentation.py
 ```
+
+On Mac OS, you need to run the following command additionally:
+```
+brew install libomp
+```
