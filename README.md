@@ -4,7 +4,7 @@ This is how to setup the project:
 ```
 conda create -n Bench python=3.8
 conda activate Bench
-git clone git@github.com:LUH-DBS/DataDiscoveryBenchmark.git
+git clone https://github.com/LUH-DBS/DataDiscoveryBenchmark.git
 cd DataDiscoveryBenchmark
 git pull origin main
 python -m pip install .
