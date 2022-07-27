@@ -6,6 +6,7 @@ import pandas as pd
 import multiprocessing
 from functools import partial
 import os
+from datadiscoverybench.os_utils import os_delimiter
 
 #path = "/home/neutatz/Software/DataDiscoveryBenchmark/data/git_parquet"
 #path = "/home/mahdi/gittable2022/GitTable2022_parquet"
@@ -24,7 +25,7 @@ def zip2parquet(zip_path, my_path=None):
             if not file.endswith('.parquet'):  # optional filtering by filetype
                 continue
             try:
-                table_name = zip_path.split('/')[-1].split('.')[0] + '_' + file.split('.')[0]
+                table_name = zip_path.split(os_delimiter)[-1].split('.')[0] + '_' + file.split('.')[0]
                 # TODO:detect header
                 # TODO: unify representation of None / NAN / ...
                 df = pq.read_table(zf.open(file)).to_pandas()  # TODO:detect index column => save space
@@ -42,7 +43,7 @@ def zip2parquet(zip_path, my_path=None):
     df = pd.DataFrame(data=d)
     df['ColumnId'] = df['ColumnId'].astype('int')
     df['RowId'] = df['RowId'].astype('int')
-    df.to_parquet(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
+    df.to_parquet(my_path + '/gittables/import/' + zip_path.split(os_delimiter)[-1].split('.')[0] + '.parquet')
 
 
 def create_db(dir_path):

@@ -6,6 +6,7 @@ import json
 import multiprocessing
 from functools import partial
 import os
+from datadiscoverybench.os_utils import os_delimiter
 
 #path = '/home/mahdi/DWTC_json'
 #my_path = '/home/felix/duckdb'
@@ -38,7 +39,7 @@ def zip2parquet(zip_path, my_path=None):
 
     d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
     df = pd.DataFrame(data=d)
-    df.to_parquet(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
+    df.to_parquet(my_path + '/dresden/import/' + zip_path.split(os_delimiter)[-1].split('.')[0] + '.parquet')
 
 def create_db(dir_path):
     if os.name == 'nt':
