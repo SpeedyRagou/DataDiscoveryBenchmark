@@ -27,46 +27,49 @@ def augment(con: duckdb.DuckDBPyConnection, df: pd.DataFrame, column_name: str, 
 
     return result
 
+def main():
+    dataset = IMDB(number_rows=1000)
+    data = dataset.get_df()
 
-dataset = IMDB()
-data = dataset.get_df()
+    y = data['averageRating'].values
+    data.drop(['averageRating'], axis=1, inplace=True, errors='ignore')
 
-y = data['averageRating'].values
-data.drop(['averageRating'], axis=1, inplace=True, errors='ignore')
+    con = duckdb.connect(database=':memory:')
+    # load_dresden_db(con)
+    load_git_tables_db(con)
 
-con = duckdb.connect(database=':memory:')
-#load_dresden_db(con)
-load_git_tables_db(con)
+    # augment
 
-#augment
+    length_before = len(data)
+    augmentation_time_start = time.time()
+    data = augment(con, data, column_name='originalTitle', id_column_name=dataset.id_column_name)
+    augmentation_time = time.time() - augmentation_time_start
+    assert length_before == len(data), "There number of rows is different after augmentation"
+    print(data.columns)
 
-length_before = len(data)
-augmentation_time_start = time.time()
-data = augment(con, data, column_name='originalTitle', id_column_name=dataset.id_column_name)
-augmentation_time = time.time() - augmentation_time_start
-assert length_before == len(data), "There number of rows is different after augmentation"
-print(data.columns)
+    data.drop([dataset.id_column_name], axis=1, inplace=True, errors='ignore')
 
-data.drop([dataset.id_column_name], axis=1, inplace=True, errors='ignore')
+    print(data.head())
 
-print(data.head())
+    X = data.values
 
+    X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=0.6, random_state=42)
 
-X = data.values
+    df = pd.DataFrame(data=X_train)
+    label = 'class'
+    df[label] = y_train
+    my_data_train = TabularDataset(data=df)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, train_size=10000, random_state=42)
+    df_test = pd.DataFrame(data=X_test)
+    my_data_test = TabularDataset(data=df_test)
 
-df = pd.DataFrame(data=X_train)
-label = 'class'
-df[label] = y_train
-my_data_train = TabularDataset(data=df)
+    predictor = TabularPredictor(label=label, problem_type='regression').fit(train_data=my_data_train,
+                                                                             time_limit=5 * 60)
+    predictions = predictor.predict(my_data_test)
 
-df_test = pd.DataFrame(data=X_test)
-my_data_test = TabularDataset(data=df_test)
+    print('r2 score: ' + str(r2_score(y_test, predictions)))
+    print('mean_squared_error: ' + str(mean_squared_error(y_test, predictions, squared=False)))
+    print('augmentation time: ' + str(augmentation_time))
 
-predictor = TabularPredictor(label=label, problem_type='regression').fit(train_data=my_data_train, time_limit=5*60)
-predictions = predictor.predict(my_data_test)
-
-print('r2 score: ' + str(r2_score(y_test, predictions)))
-print('mean_squared_error: ' + str(mean_squared_error(y_test, predictions, squared=False)))
-print('augmentation time: ' + str(augmentation_time))
+if __name__ == "__main__":
+    main()

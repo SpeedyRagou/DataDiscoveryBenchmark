@@ -10,7 +10,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 class IMDB(Dataset):
 
-    def __init__(self):
+    def __init__(self, number_rows=None):
 
         if not os.path.isdir(dir_path + '/data'):
             os.mkdir(dir_path + '/data')
@@ -29,6 +29,10 @@ class IMDB(Dataset):
                                        dir_path + '/data/imdb/' + 'title.basics.tsv.gz')
         titles = pd.read_csv(dir_path + '/data/imdb/' + 'title.basics.tsv.gz', compression='gzip', header=0,
                              delimiter='\t')
+
+        if type(number_rows) != type(None):
+            titles = titles.head(number_rows)
+
 
         con = duckdb.connect(database=':memory:')
         self.data = con.execute('''

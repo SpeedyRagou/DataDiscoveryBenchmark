@@ -5,6 +5,7 @@ import pyarrow.parquet as pq
 import pandas as pd
 import multiprocessing
 from functools import partial
+import os
 
 #path = "/home/neutatz/Software/DataDiscoveryBenchmark/data/git_parquet"
 #path = "/home/mahdi/gittable2022/GitTable2022_parquet"
@@ -45,7 +46,10 @@ def zip2parquet(zip_path, my_path=None):
 
 
 def create_db(dir_path):
-    multiprocessing.set_start_method('fork')
+    if os.name == 'nt':
+        multiprocessing.set_start_method('spawn')
+    else:
+        multiprocessing.set_start_method('fork')
     my_path = dir_path + '/data'
 
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
