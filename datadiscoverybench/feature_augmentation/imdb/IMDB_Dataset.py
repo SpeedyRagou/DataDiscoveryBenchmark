@@ -38,7 +38,7 @@ class IMDB(Dataset):
         self.data = con.execute('''
                               SELECT * 
                               FROM ratings 
-                              LEFT JOIN titles 
+                              INNER JOIN titles 
                               ON titles.tconst=ratings.tconst 
                               ORDER BY titles.tconst ASC;
                            ''').fetch_df()
