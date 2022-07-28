@@ -35,21 +35,22 @@ def main():
     data.drop(['averageRating'], axis=1, inplace=True, errors='ignore')
 
     con = duckdb.connect(database=':memory:')
-    # load_dresden_db(con)
+    #load_dresden_db(con, parts=[0,1])
     load_git_tables_db(con)
 
     # augment
 
     length_before = len(data)
     augmentation_time_start = time.time()
-    data = augment(con, data, column_name='originalTitle', id_column_name=dataset.id_column_name)
+    #data = augment(con, data, column_name='originalTitle', id_column_name=dataset.id_column_name)
     augmentation_time = time.time() - augmentation_time_start
     assert length_before == len(data), "There number of rows is different after augmentation"
     print(data.columns)
 
     data.drop([dataset.id_column_name], axis=1, inplace=True, errors='ignore')
 
-    print(data.head())
+    print('head')
+    print(data.head().values)
 
     X = data.values
 
