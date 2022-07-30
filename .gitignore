@@ -4,7 +4,8 @@
 *.cpython-36.pyc
 fastsklearnfeature/candidates/__pycache__/
 fastsklearnfeature/interactiveAutoML/new_bench/multiobjective/metalearning/openml_data/notebook/.ipynb_checkpoints/
-
+*.vscode
+AutogluonModels
 *~
 
 
