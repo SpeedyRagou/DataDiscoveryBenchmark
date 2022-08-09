@@ -26,7 +26,7 @@ def zip2parquet(zip_path, my_path=None):
                 if not file.endswith('.parquet'):  # optional filtering by filetype
                     continue
                 try:
-                    table_name = zip_path.split('/')[-1].split('.')[0] + '_' + file.split('.')[0]
+                    table_name = zip_path.split('/')[-1].split('.')[0].replace('\'', '') + '_' + file.split('.')[0]
                     # TODO:detect header
                     # TODO: unify representation of None / NAN / ...
                     df = pq.read_table(zf.open(file)).to_pandas()  # TODO:detect index column => save space
@@ -44,8 +44,7 @@ def zip2parquet(zip_path, my_path=None):
         df = pd.DataFrame(data=d)
         df['ColumnId'] = df['ColumnId'].astype('int')
         df['RowId'] = df['RowId'].astype('int')
-        clean_file_name = my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet'.replace('\'', '')
-        df.to_parquet(clean_file_name)
+        df.to_parquet(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0].replace('\'', '') + '.parquet')
 
 
 def create_db(dir_path, parts, con=None, store_db=True):
