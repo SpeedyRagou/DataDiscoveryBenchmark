@@ -15,7 +15,7 @@ import pickle
 #my_path = '/home/felix/duckdb'
 
 def zip2parquet(zip_path, my_path=None):
-    if not os.path.isfile(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet'):
+    if not os.path.isfile(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0].replace('\'', '') + '.parquet'):
         cell_values = []
         table_ids = []
         column_ids = []
@@ -44,7 +44,8 @@ def zip2parquet(zip_path, my_path=None):
         df = pd.DataFrame(data=d)
         df['ColumnId'] = df['ColumnId'].astype('int')
         df['RowId'] = df['RowId'].astype('int')
-        df.to_parquet(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
+        clean_file_name = my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet'.replace('\'', '')
+        df.to_parquet(clean_file_name)
 
 
 def create_db(dir_path, parts, con=None, store_db=True):
@@ -68,7 +69,7 @@ def create_db(dir_path, parts, con=None, store_db=True):
     con.execute("CREATE TABLE AllTables(CellValue VARCHAR, TableId VARCHAR, ColumnId USMALLINT, RowId UINTEGER);")
     parquet_files_str = '['
     for zip_path in paths:
-        parquet_files_str += "'" + my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet' + "', "
+        parquet_files_str += "'" + my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0].replace('\'', '') + '.parquet' + "', "
     parquet_files_str= parquet_files_str[:-2] + ']'
     con.execute("INSERT INTO AllTables SELECT * FROM read_parquet(" + parquet_files_str + ");")
     con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
