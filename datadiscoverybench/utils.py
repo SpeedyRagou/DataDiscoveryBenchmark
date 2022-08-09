@@ -26,11 +26,11 @@ def setup_db(name):
         os.mkdir(dir_path + '/data/' + name + '/import')
 
 
-def load_dresden_db(con, parts=[0]):
+def load_dresden_db(con, parts=[0], store_db=True):
     db_name = 'dresden'
     setup_db(db_name)
 
-    # print("starting download")
+    #print("starting download")
     for p in parts:
         formatted_id = str(p).zfill(3)
         if not os.path.isfile(dir_path + '/data/' + db_name + '/data/' + 'dwtc-' + formatted_id + '.json.gz'):
@@ -42,15 +42,15 @@ def load_dresden_db(con, parts=[0]):
         with open(dir_path + '/data/' + db_name + '/db/' + 'parts.pickle', "rb") as input_file:
             parts_old = pickle.load(input_file)
             if set(parts_old) != set(parts):
-                create_dresden_db(dir_path, parts)
+                create_dresden_db(dir_path, parts, con=con, store_db=store_db)
+            else:
+                con.execute("IMPORT DATABASE '" + dir_path + "/data/" + db_name + "/db';")
     else:
-        create_dresden_db(dir_path, parts)
+        create_dresden_db(dir_path, parts, con=con, store_db=store_db)
     #print("created duckdb")
 
-    con.execute("IMPORT DATABASE '" + dir_path + "/data/" + db_name + "/db';")
-
 # find single files here: https://zenodo.org/record/6517052
-def load_git_tables_db(con, parts=['allegro_con_spirito_tables_licensed']):
+def load_git_tables_db(con, parts=['allegro_con_spirito_tables_licensed'], store_db=True):
     db_name = 'gittables'
     setup_db(db_name)
 
@@ -66,9 +66,9 @@ def load_git_tables_db(con, parts=['allegro_con_spirito_tables_licensed']):
         with open(dir_path + '/data/' + db_name + '/db/' + 'parts.pickle', "rb") as input_file:
             parts_old = pickle.load(input_file)
             if set(parts_old) != set(parts):
-                create_gittables_db(dir_path, parts)
+                create_gittables_db(dir_path, parts, con=con, store_db=store_db)
+            else:
+                con.execute("IMPORT DATABASE '" + dir_path + "/data/" + db_name + "/db';")
     else:
-        create_gittables_db(dir_path, parts)
+        create_gittables_db(dir_path, parts, con=con, store_db=store_db)
     # print("created duckdb")
-
-    con.execute("IMPORT DATABASE '" + dir_path + "/data/" + db_name + "/db';")

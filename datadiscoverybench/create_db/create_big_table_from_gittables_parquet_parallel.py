@@ -47,7 +47,7 @@ def zip2parquet(zip_path, my_path=None):
         df.to_parquet(my_path + '/gittables/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
 
 
-def create_db(dir_path, parts):
+def create_db(dir_path, parts, con=None, store_db=True):
     if os.name == 'nt':
         multiprocessing.set_start_method('spawn')
     else:
@@ -56,13 +56,15 @@ def create_db(dir_path, parts):
 
     paths = [dir_path + '/data/gittables/data/' + p + '.zip' for p in parts]
 
-    with open(dir_path + '/data/gittables/db/parts.pickle', "w+b") as output_file:
-        pickle.dump(parts, output_file)
+    if store_db:
+        with open(dir_path + '/data/gittables/db/parts.pickle', "w+b") as output_file:
+            pickle.dump(parts, output_file)
 
     pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
     pool.map(partial(zip2parquet, my_path=my_path), paths)
 
-    con = duckdb.connect(database=':memory:')
+    if type(con) == type(None):
+        con = duckdb.connect(database=':memory:')
     con.execute("CREATE TABLE AllTables(CellValue VARCHAR, TableId VARCHAR, ColumnId USMALLINT, RowId UINTEGER);")
     parquet_files_str = '['
     for zip_path in paths:
@@ -70,4 +72,6 @@ def create_db(dir_path, parts):
     parquet_files_str= parquet_files_str[:-2] + ']'
     con.execute("INSERT INTO AllTables SELECT * FROM read_parquet(" + parquet_files_str + ");")
     con.execute("CREATE INDEX token_idx ON AllTables (CellValue);")
-    con.execute("EXPORT DATABASE '" + my_path + "/gittables/db/' (FORMAT PARQUET);")
+
+    if store_db:
+        con.execute("EXPORT DATABASE '" + my_path + "/gittables/db/' (FORMAT PARQUET);")
