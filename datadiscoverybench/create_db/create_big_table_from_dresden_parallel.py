@@ -1,5 +1,4 @@
 import duckdb
-import glob
 import pandas as pd
 import gzip
 import json
@@ -8,7 +7,6 @@ from functools import partial
 import os
 import pickle
 from multiprocessing import Manager
-from multiprocessing import Lock
 from datadiscoverybench.create_db.lock_utils import my_lock
 
 #path = '/home/mahdi/DWTC_json'
@@ -20,38 +18,47 @@ from datadiscoverybench.create_db.lock_utils import my_lock
 
 
 def zip2parquet(zip_path, my_path=None, table_num_dict=None):
-    if not os.path.isfile(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet'):
-        cell_values = []
-        table_ids = []
-        column_ids = []
-        row_ids = []
+    cell_values = []
+    table_ids = []
+    column_ids = []
+    row_ids = []
 
-        with gzip.open(zip_path, 'rt') as f:
-            for line in f:
-                json_data = json.loads(line)
-                #print(json_data['id'])
-                #print(json_data)
+    budget = 0
+    with gzip.open(zip_path, 'rt') as f0:
+        for _ in f0:
+            budget += 1
 
-                #todo fix table header situation
-                for row_id in range(len(json_data['relation'])):
-                    for column_id in range(len(json_data['relation'][0])):
-                        cell_values.append(str(json_data['relation'][row_id][column_id]))
-                        table_ids.append(table_num_dict['table_num'])
-                        column_ids.append(column_id)
-                        row_ids.append(row_id)
-
-                my_lock.acquire()
-                try:
-                    table_num_dict['table_num'] += 1
-                except Exception as e:
-                    print('catched: ' + str(e))
-                finally:
-                    my_lock.release()
+    current_pointer = None
+    my_lock.acquire()
+    try:
+        current_pointer = table_num_dict['table_num']
+        table_num_dict['table_num'] += 1
+    except Exception as e:
+        print('catched: ' + str(e))
+    finally:
+        my_lock.release()
 
 
-        d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
-        df = pd.DataFrame(data=d)
-        df.to_parquet(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
+    with gzip.open(zip_path, 'rt') as f:
+        for line in f:
+            json_data = json.loads(line)
+            #print(json_data['id'])
+            #print(json_data)
+
+            #todo fix table header situation
+            for row_id in range(len(json_data['relation'])):
+                for column_id in range(len(json_data['relation'][0])):
+                    cell_values.append(str(json_data['relation'][row_id][column_id]))
+                    table_ids.append(current_pointer)
+                    column_ids.append(column_id)
+                    row_ids.append(row_id)
+
+            current_pointer += 1
+
+
+    d = {'CellValue': cell_values, 'TableId': table_ids, 'ColumnId': column_ids, 'RowId': row_ids}
+    df = pd.DataFrame(data=d)
+    df.to_parquet(my_path + '/dresden/import/' + zip_path.split('/')[-1].split('.')[0] + '.parquet')
 
 def create_db(dir_path, parts, con=None, store_db=True):
     try:
