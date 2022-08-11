@@ -32,7 +32,7 @@ def zip2parquet(zip_path, my_path=None, table_num_dict=None):
     my_lock.acquire()
     try:
         current_pointer = table_num_dict['table_num']
-        table_num_dict['table_num'] += 1
+        table_num_dict['table_num'] += budget
     except Exception as e:
         print('catched: ' + str(e))
     finally:
