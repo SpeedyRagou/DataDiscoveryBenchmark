@@ -48,10 +48,13 @@ def zip2parquet(zip_path, my_path=None):
 
 
 def create_db(dir_path, parts, con=None, store_db=True):
-    if os.name == 'nt':
-        multiprocessing.set_start_method('spawn')
-    else:
-        multiprocessing.set_start_method('fork')
+    try:
+        if os.name == 'nt':
+            multiprocessing.set_start_method('spawn')
+        else:
+            multiprocessing.set_start_method('fork')
+    except:
+        pass
     my_path = dir_path + '/data'
 
     paths = [dir_path + '/data/gittables/data/' + p + '.zip' for p in parts]
