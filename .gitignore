@@ -99,3 +99,15 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+
+# Group C
+./dataxformer_group-c/Examples/benchmark/*.*
+*.parquet
+*.txt
+*.gz
+*.sql
+*.pickle
+*.csv
+*.zip
+*.rar

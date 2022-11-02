@@ -116,7 +116,7 @@ class DBHandler:
 if __name__ == "__main__":
     db = DBHandler()
     ex = pd.DataFrame([["x11", "x12", "y1 "], ["x21", "x22", "y2 "]])
-    db.fetch_candidates(ex)
+    print(db.fetch_candidates(ex))
     #db.fetch_table(1)
 
 
