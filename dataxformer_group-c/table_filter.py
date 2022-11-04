@@ -47,6 +47,8 @@ class TableFilter:
         for i in table_ids.TableId:
             tables[i] = self.db_handler.fetch_table(i)
 
+        # TODO check examples / alignment
+
         # Check functional dependencies (FD)
         for t in tables:
             table = tables[t]

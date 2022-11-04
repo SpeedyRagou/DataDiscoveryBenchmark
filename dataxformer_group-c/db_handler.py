@@ -58,7 +58,7 @@ class DBHandler:
             query += f"\nAND colX{x + 1}.ColumnId <> colY.ColumnId "
 
         if self.debug:
-            query += "\nLIMIT 10;"
+            query += "\nLIMIT 50;"
 
         print(query)
         return query
@@ -84,7 +84,6 @@ class DBHandler:
         pd.DataFrame
             Candidate tables/columns.
         """
-        print(examples.to_numpy().T)
         return self.con.execute(self.__generate_query(examples.to_numpy().T, tau=tau)).fetch_df()
 
     def fetch_table(self, table_id: int) -> pd.DataFrame:
@@ -110,7 +109,31 @@ class DBHandler:
         for col_id, column_content in table_content.groupby(['ColumnId']):
             table[col_id] = list(column_content['CellValue'])
 
+        return table.astype(int)
+
+    def fetch_table_columns(self, row: pd.Series) -> pd.DataFrame:
+        table_id = row[0]
+        columns_ids = list(row[1:])
+
+        table_content = self.con.execute(f"SELECT CellValue, ColumnId "
+                                         f"FROM AllTables "
+                                         f"WHERE TableId = {table_id} "
+                                         f"AND ColumnID IN ({str(columns_ids)[1:-1]})"
+                                         f"ORDER BY ColumnId, RowId ").fetch_df()
+
+        table = pd.DataFrame()
+        for col_id, column_content in table_content.groupby(['ColumnId']):
+            table[col_id] = list(column_content['CellValue'])
+
         return table
+
+    def fetch_tables(self, table_ids: List[int]):
+        table_content = self.con.execute(f"SELECT CellValue, ColumnId "
+                                         f"FROM AllTables "
+                                         f"WHERE TableId IN ({table_ids}) "
+                                         f"ORDER BY ColumnId, RowId ").fetch_df()
+        # TODO implement
+        raise NotImplementedError
 
 
 if __name__ == "__main__":
