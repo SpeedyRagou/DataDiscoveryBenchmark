@@ -42,8 +42,6 @@ class DataXFormer:
         # tokenize input csv
         # use nltk package for this
 
-        # stem input csv
-        # use nltk package for this
 
         # send to main loop
         print("Given Examples:")
