@@ -48,7 +48,7 @@ class DataXFormer:
         print(examples, "\n\n")
         print("Given Query Values:")
         print(inp, "\n\n")
-        mainLoop = ExpectationMaximization(self.delta_epsilon)
+        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99)
         mainLoop.expectation_maximization(examples, inp)
 
 
