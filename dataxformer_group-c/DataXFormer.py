@@ -2,8 +2,8 @@ from pathlib import Path
 
 import pandas as pd
 from expectation_maximization import ExpectationMaximization
+import re
 
-"""
 def get_cleaned_text(text):
     # if text is None or len(str(text)) == 1:
     #     return ''
@@ -25,7 +25,7 @@ def get_cleaned_text(text):
     for x in punct:
         feature_one = feature_one.replace('{}'.format(x), ' ')
     return feature_one
-"""
+
 
 
 class DataXFormer:
@@ -35,11 +35,15 @@ class DataXFormer:
 
     def run(self, path_to_input_csv: Path) -> pd.DataFrame:
         # load input csv
-        input_frame = pd.read_csv(path_to_input_csv, dtype=str)
+        input_frame = pd.read_csv(path_to_input_csv, dtype=str, encoding="ISO-8859-1")
         columns = input_frame.columns
         examples = input_frame.dropna(axis=0, how='any', inplace=False)
         inp = input_frame[input_frame[columns[-1]].isna()]
+
         # tokenize input csv
+        #examples = examples.applymap(get_cleaned_text)
+        #inp = inp.applymap(get_cleaned_text)
+
         # use nltk package for this
 
 

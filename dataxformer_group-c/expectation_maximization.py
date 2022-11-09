@@ -1,5 +1,5 @@
 from collections import defaultdict
-
+from typing import Dict
 import duckdb
 import numpy as np
 import pandas as pd
@@ -9,15 +9,20 @@ import duckdb
 
 
 class ExpectationMaximization:
-    def __init__(self, delta_epsilon: float = 0.5, alpha: float = 0.99, verbose: bool = True):
+    def __init__(self, delta_epsilon: float = 0.5, alpha: float = 0.99, verbose: bool = False):
         self.delta_epsilon = delta_epsilon
-        self.dbHandler = DBHandler(debug=verbose)
+        self.dbHandler = DBHandler(verbose=verbose)
         self.alpha = alpha
         self.verbose = verbose
+
+        self.__inp = None
+
         if not (1>alpha>0):
             print("WARNING: smoothing_factor alpha should always be only slightly lower than one")
 
     def expectation_maximization(self, examples: pd.DataFrame, inp: pd.DataFrame):
+        self.__inp = inp.copy()
+
         answers = examples.copy()
         tables = None
         finishedQuerying = False
@@ -128,7 +133,7 @@ class ExpectationMaximization:
             # Update Table Score
             self.__updateTableScore(answers, tables, lineage_tables, answer_scores, table_scores)
             # Update Answer Score
-            self.__updateAnswerScores(answers, tables)
+            self.__updateAnswerScores(answers, lineage_answers, answer_scores, table_scores)
             # calculate delta and compare to delta_epsilon
         if self.verbose:
             print(table_scores)
@@ -225,5 +230,45 @@ class ExpectationMaximization:
         complement = duckdb.query(query).to_df()
         return complement
 
-    def __updateAnswerScores(self, answers, tables):
-        pass
+    def __updateAnswerScores(
+            self,
+            answers: pd.DataFrame,
+            lineage_answers: Dict,
+            answer_scores: Dict,
+            table_scores: Dict
+    ):
+        for x in self.__inp.iloc[:, :-1].to_numpy().flatten():
+            answers_x = self.__get_answers(answers, x)
+
+            # extract all distinct tuples (tableId, columnId1, ...) for x's answers
+            all_tables = [tuple(table) for _, a in answers_x.iterrows() for _, table in lineage_answers[tuple(a)].iterrows()]
+            all_tables = set(all_tables)    # remove duplicates
+
+            score_of_none = 1.
+            for table in all_tables:
+                score_of_none *= (1 - table_scores[table])
+                for _, a in answers_x.iterrows():
+                    a = tuple(a)
+                    answer_scores[a] = 1.
+
+                    if table in lineage_answers[tuple(a)]["TableId"]:
+                        answer_scores[a] += table_scores[table]
+                    else:
+                        answer_scores[a] += (1 - table_scores[table])
+
+            answer_score_sum = sum(answer_scores.values())
+            for _, a in answers_x.iterrows():
+                answer_scores[tuple(a)] /= score_of_none + answer_score_sum
+
+    def __get_answers(self, answers: pd.DataFrame, x: np.ndarray):
+        where_clause = ""
+        for col, val in zip(answers.columns[:-1], x):
+            where_clause += f"answers.\"{col}\" = '{val}' AND "
+        where_clause = where_clause[:len(where_clause) - 4]
+
+        query = f"SELECT DISTINCT answers.* " \
+                f"FROM answers " \
+                f"WHERE {where_clause}"
+
+        return duckdb.query(query).to_df()
+

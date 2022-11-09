@@ -15,9 +15,10 @@ class DBHandler:
     debug : bool
         If true, the number of result rows is limited to 10.
     """
-    def __init__(self, debug: bool = True):
+    def __init__(self, debug: bool = True, verbose: bool = False):
         self.con = duckdb.connect(database=':memory:')
         self.debug = debug
+        self.verbose = verbose
 
         load_dresden_db(self.con)
 
@@ -60,7 +61,8 @@ class DBHandler:
         if self.debug:
             query += "\nLIMIT 50;"
 
-        print(query)
+        if self.verbose:
+            print(query)
         return query
 
     def fetch_candidates(self, examples: pd.DataFrame, tau: int = 2) -> pd.DataFrame:
