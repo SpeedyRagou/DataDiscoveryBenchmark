@@ -25,9 +25,10 @@ class TableFilter:
         bool
             Returns whether functional dependency holds.
         """
+        t = table
         # query to extract all rows that violate functional dependency
         query = f"SELECT * " \
-                f"FROM table t1 , table t2 " \
+                f"FROM t t1 , t t2 " \
                 f"WHERE t1.\"{table.columns[0]}\" = t2.\"{table.columns[0]}\" " \
                 f"AND t1.\"{table.columns[1]}\" <> t2.\"{table.columns[1]}\" "
         fd_violations = duckdb.query(query).to_df()
