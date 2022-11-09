@@ -1,18 +1,10 @@
 import duckdb
-import numpy as np
 import pandas as pd
-
-from db_handler import DBHandler
 
 
 class TableFilter:
     """
     Filters table candidates.
-
-    Parameters
-    ----------
-    db_handler : DBHandler
-        Object for Database Interaction.
     """
 
     def __init__(self):
@@ -70,7 +62,7 @@ class TableFilter:
 
         # Check column-row alignment of examples in table
         for x, y in zip(examples.iloc[:, 0], examples.iloc[:, 1]):
-            x_idx = table.index[table.iloc[:, 1] == x].tolist()
+            x_idx = table.index[table.iloc[:, 0] == x].tolist()
             y_idx = table.index[table.iloc[:, 1] == y].tolist()
             if x_idx:
                 if set(x_idx).isdisjoint(y_idx):
@@ -96,8 +88,8 @@ if __name__ == "__main__":
     table4 = pd.DataFrame({'xCol': ['FCB', 'BVB', 'HSV', 'ACM', 'RM', 'FCB'],
                            'yCol': ['Munich', 'Hamburg', 'Dortmund', 'Milan', 'Madrid', 'Barcelona']})
 
-    ex = pd.DataFrame({'xCol': ['FCB', 'ACM'],
-                       'yCol': ['Munich', 'Milan']})
+    ex = pd.DataFrame({'xCol': ['FCB', 'HSV'],
+                       'yCol': ['Munich', 'Hamburg']})
 
     tf = TableFilter()
     print(tf.filter(ex, table1))
