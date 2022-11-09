@@ -34,7 +34,7 @@ class DBHandler:
 
         # subquery for x columns and y column
         for x in range(0, x_cols):
-            joint_list = "','".join(examples[x])
+            joint_list = "','".join(set(examples[x]))
 
             query += f"\n   (SELECT TableId, ColumnId " \
                      f"\n   FROM AllTables " \
@@ -42,7 +42,7 @@ class DBHandler:
                      f"\n   GROUP BY TableId, ColumnId " \
                      f"\n   HAVING COUNT(DISTINCT CellValue) >= {tau}) AS colX{x + 1},\n"
 
-        joint_list = "','".join(examples[x_cols])
+        joint_list = "','".join(set(examples[x_cols]))
         query += f"\n   (SELECT TableId, ColumnId " \
                  f"\n   FROM AllTables " \
                  f"\n   WHERE CellValue IN ('{joint_list}') " \

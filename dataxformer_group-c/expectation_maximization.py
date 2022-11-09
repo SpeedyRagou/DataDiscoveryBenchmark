@@ -9,7 +9,7 @@ import duckdb
 
 
 class ExpectationMaximization:
-    def __init__(self, delta_epsilon: float = 0.5, alpha: float = 0.99, verbose: bool = False):
+    def __init__(self, delta_epsilon: float = 0.5, alpha: float = 0.99, verbose: bool = True):
         self.delta_epsilon = delta_epsilon
         self.dbHandler = DBHandler(verbose=verbose)
         self.alpha = alpha
