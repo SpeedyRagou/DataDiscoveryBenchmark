@@ -41,8 +41,8 @@ class DataXFormer:
         inp = input_frame[input_frame[columns[-1]].isna()]
 
         # tokenize input csv
-        #examples = examples.applymap(get_cleaned_text)
-        #inp = inp.applymap(get_cleaned_text)
+        examples = examples.applymap(get_cleaned_text)
+        inp = inp.applymap(get_cleaned_text)
 
         # use nltk package for this
 
@@ -58,6 +58,6 @@ class DataXFormer:
 
 
 if __name__ == '__main__':
-    path_to_examples = Path("../dataxformer_group-c/Examples/benchmark/AsciiToUnicode.csv").resolve()
+    path_to_examples = Path("../dataxformer_group-c/Examples/benchmark/CountryToLanguage.csv").resolve()
     dataxformer = DataXFormer()
     dataxformer.run(path_to_examples)

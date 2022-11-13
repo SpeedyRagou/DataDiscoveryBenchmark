@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from datadiscoverybench.utils import load_dresden_db
 from db_handler import DBHandler
+from table_filter import TableFilter
 import duckdb
 
 
@@ -12,6 +13,7 @@ class ExpectationMaximization:
     def __init__(self, delta_epsilon: float = 0.5, alpha: float = 0.99, verbose: bool = True):
         self.delta_epsilon = delta_epsilon
         self.dbHandler = DBHandler(verbose=verbose)
+        self.table_filter = TableFilter()
         self.alpha = alpha
         self.verbose = verbose
 
@@ -55,8 +57,6 @@ class ExpectationMaximization:
 
                 # get indirect Transformation candidates
 
-                # filter tables by checking functional dependency
-
                 # union tables
                 if self.verbose:
 
@@ -68,6 +68,10 @@ class ExpectationMaximization:
                     table_id = table[0]
 
                     rows = self.dbHandler.fetch_table_columns(table)
+
+                    # filter out tables where col-row alignment does not match or functional dependency does not hold
+                    if not self.table_filter.filter(answers, rows):
+                        continue
 
                     input_columns = list(inp.columns)
                     rows_columns = list(rows.columns)
