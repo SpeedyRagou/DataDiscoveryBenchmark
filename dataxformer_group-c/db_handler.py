@@ -20,7 +20,10 @@ class DBHandler:
         self.debug = debug
         self.verbose = verbose
 
-        load_dresden_db(self.con)
+        parts = [0]
+        if not debug:
+            parts = range(500)
+        load_dresden_db(self.con, parts=parts)
 
     def __generate_query(self, examples: np.ndarray, tau: int = 2) -> str:
         x_cols = len(examples) - 1

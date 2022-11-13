@@ -52,9 +52,15 @@ class DataXFormer:
         print(examples, "\n\n")
         print("Given Query Values:")
         print(inp, "\n\n")
-        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99)
-        mainLoop.expectation_maximization(examples, inp)
+        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False)
+        result = mainLoop.expectation_maximization(examples, inp)
 
+        print()
+        print("---------------------------------------------")
+        print("Final result")
+        print("---------------------------------------------")
+        print(sorted(list(result.items()), key=lambda x: x[1], reverse=True))
+        print("---------------------------------------------")
 
 
 if __name__ == '__main__':

@@ -10,16 +10,27 @@ import duckdb
 
 
 class ExpectationMaximization:
-    def __init__(self, delta_epsilon: float = 0.5, alpha: float = 0.99, verbose: bool = True):
+    def __init__(
+            self,
+            delta_epsilon: float = 0.5,
+            alpha: float = 0.99,
+            verbose: bool = True,
+            debug: bool = True
+    ):
         self.delta_epsilon = delta_epsilon
-        self.dbHandler = DBHandler(verbose=verbose)
+        self.dbHandler = DBHandler(verbose=verbose, debug=debug)
         self.table_filter = TableFilter()
         self.alpha = alpha
         self.verbose = verbose
 
         self.__inp = None
 
-        if not (1>alpha>0):
+        self.__lineage_answers = {}
+        self.__lineage_tables = {}
+        self.__answer_scores = {}
+        self.__table_scores = {}
+
+        if not (1 > alpha > 0):
             print("WARNING: smoothing_factor alpha should always be only slightly lower than one")
 
     def expectation_maximization(self, examples: pd.DataFrame, inp: pd.DataFrame):
@@ -28,15 +39,10 @@ class ExpectationMaximization:
         answers = examples.copy()
         tables = None
         finishedQuerying = False
-        oldA = None
         delta_score = 0
-        lineage_answers = {}
-        lineage_tables = {}
-        answer_scores = {}
-        table_scores = {}
 
         for index, row in examples.iterrows():
-            answer_scores[tuple(row)] = 1.0
+            self.__answer_scores[tuple(row)] = 1.0
 
         iteration = 0
 
@@ -114,16 +120,17 @@ class ExpectationMaximization:
                         answers = pd.concat([answers, possible_candidates], axis=0)
                         answers.drop_duplicates(inplace=True)
 
-                        lineage_tables[tuple(table)] = possible_candidates
-                        lineage_tables[tuple(table)].drop_duplicates(inplace=True)
+                        self.__lineage_tables[tuple(table)] = possible_candidates
+                        self.__lineage_tables[tuple(table)].drop_duplicates(inplace=True)
 
                     for index, candidate in possible_candidates.iterrows():
 
                         key = tuple(candidate)
-                        if lineage_answers.get(key, pd.DataFrame()).empty:
+                        if self.__lineage_answers.get(key, pd.DataFrame()).empty:
                             new_value = True
-                        lineage_answers[key] = pd.concat(
-                            (lineage_answers.get(key, pd.DataFrame(columns=tables.columns)), pd.DataFrame([table])),
+                        self.__lineage_answers[key] = pd.concat(
+                            (self.__lineage_answers.get(key, pd.DataFrame(columns=tables.columns)),
+                             pd.DataFrame([table])),
                             axis=0)
 
             if not new_value:
@@ -135,39 +142,50 @@ class ExpectationMaximization:
                 print(f"Possible Answers:\n {answers}\n")
 
             # Update Table Score
-            self.__updateTableScore(answers, tables, lineage_tables, answer_scores, table_scores)
+            self.__updateTableScore(answers, tables)
+
             # Update Answer Score
-            self.__updateAnswerScores(answers, lineage_answers, answer_scores, table_scores)
+            old_a = self.__answer_scores.copy()
+            self.__updateAnswerScores(answers)
+
             # calculate delta and compare to delta_epsilon
+            delta_score = 0
+            for key in self.__answer_scores:
+                if key in old_a:
+                    delta_score += abs(self.__answer_scores[key] - old_a[key])
+                else:
+                    delta_score += abs(self.__answer_scores[key])
+
         if self.verbose:
-            print(table_scores)
-            print(answer_scores)
+            print(self.__table_scores)
+            print(self.__answer_scores)
 
-        return answer_scores
+        return self.__answer_scores
 
-    def __updateTableScore(self, answers, tables: pd.DataFrame, lineage_tables, answer_scores, table_scores):
-
-
+    def __updateTableScore(self, answers, tables: pd.DataFrame):
         for index, table in tables.iterrows():
             good = 0
             bad = 0
 
-            coveredX = lineage_tables.get(tuple(table), pd.DataFrame(columns=answers.columns))
+            coveredX = self.__lineage_tables.get(tuple(table),
+                                                 pd.DataFrame(columns=answers.columns))
 
             if coveredX.empty:
                 continue
 
             # Incrementation step for good and bad counter
             for index, possible_transformation in coveredX.iterrows():
-                if self.__isMax(tuple(possible_transformation), answers, answer_scores):
-                    good += answer_scores.get(tuple(possible_transformation), 1.0)
+                if self.__isMax(tuple(possible_transformation), answers):
+                    good += self.__answer_scores.get(tuple(possible_transformation), 1.0)
                 else:
                     bad += 1
 
             # calculation of unseenX
             unseenX = self.__getUnseenX(coveredX, answers)
 
-            score_values = pd.Series(np.fromiter((answer_scores.get(tuple(row), 1.0) for index, row in unseenX.iterrows()), dtype=np.float))
+            score_values = pd.Series(np.fromiter((
+                self.__answer_scores.get(tuple(row), 1.0) for index, row in unseenX.iterrows()),
+                dtype=np.float))
 
             unseenX = pd.concat((unseenX, score_values), axis=1)
 
@@ -195,9 +213,9 @@ class ExpectationMaximization:
             # formular for table_score
             score = self.alpha * ((prior * good) /(prior * good + (1-prior) * (bad + sum_value)))
 
-            table_scores[tuple(table)] = score
+            self.__table_scores[tuple(table)] = score
 
-    def __isMax(self, candidate: tuple, answers: pd.DataFrame, answer_scores: dict) -> bool:
+    def __isMax(self, candidate: tuple, answers: pd.DataFrame) -> bool:
 
         # preparing where clause for all x_columns
         where_clause = ""
@@ -214,16 +232,17 @@ class ExpectationMaximization:
 
         # check if subjects score is greater than its brethren
         all_scores = np.fromiter(
-            (answer_scores.get(tuple(row), 1.0) for index, row in similar_transformations.iterrows()), np.float)
+            (self.__answer_scores.get(
+                tuple(row), 1.0) for index, row in similar_transformations.iterrows()), np.float)
 
-
-        return not (all_scores > answer_scores.get(candidate, 1.0)).any()
+        return not (all_scores > self.__answer_scores.get(candidate, 1.0)).any()
 
     def __getUnseenX(self, coveredX: pd.DataFrame, answers: pd.DataFrame):
 
         # generate where clause that can handle all x_columns
         where_clause = ""
-        for column, x_value in zip(answers.columns[:len(answers.columns) - 1], coveredX.columns[:len(coveredX.columns) - 1]):
+        for column, x_value in zip(answers.columns[:len(answers.columns) - 1],
+                                   coveredX.columns[:len(coveredX.columns) - 1]):
             where_clause += f"answers.\"{column}\" <> coveredX.\"{x_value}\" OR "
         where_clause = where_clause[:len(where_clause) - 4]
 
@@ -236,33 +255,31 @@ class ExpectationMaximization:
 
     def __updateAnswerScores(
             self,
-            answers: pd.DataFrame,
-            lineage_answers: Dict,
-            answer_scores: Dict,
-            table_scores: Dict
+            answers: pd.DataFrame
     ):
         for x in self.__inp.iloc[:, :-1].to_numpy().flatten():
             answers_x = self.__get_answers(answers, x)
 
             # extract all distinct tuples (tableId, columnId1, ...) for x's answers
-            all_tables = [tuple(table) for _, a in answers_x.iterrows() for _, table in lineage_answers[tuple(a)].iterrows()]
+            all_tables = [tuple(table) for _, a in answers_x.iterrows()
+                          for _, table in self.__lineage_answers[tuple(a)].iterrows()]
             all_tables = set(all_tables)    # remove duplicates
 
             score_of_none = 1.
             for table in all_tables:
-                score_of_none *= (1 - table_scores[table])
+                score_of_none *= (1 - self.__table_scores[table])
                 for _, a in answers_x.iterrows():
                     a = tuple(a)
-                    answer_scores[a] = 1.
+                    self.__answer_scores[a] = 1.
 
-                    if table in lineage_answers[tuple(a)]["TableId"]:
-                        answer_scores[a] += table_scores[table]
+                    if table in self.__lineage_answers[tuple(a)]["TableId"]:
+                        self.__answer_scores[a] += self.__table_scores[table]
                     else:
-                        answer_scores[a] += (1 - table_scores[table])
+                        self.__answer_scores[a] += (1 - self.__table_scores[table])
 
-            answer_score_sum = sum(answer_scores.values())
+            answer_score_sum = sum(self.__answer_scores.values())
             for _, a in answers_x.iterrows():
-                answer_scores[tuple(a)] /= score_of_none + answer_score_sum
+                self.__answer_scores[tuple(a)] /= score_of_none + answer_score_sum
 
     def __get_answers(self, answers: pd.DataFrame, x: np.ndarray):
         where_clause = ""
