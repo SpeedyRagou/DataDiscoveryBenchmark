@@ -11,6 +11,6 @@ if __name__ == '__main__':
     for i in range(parquets.shape[0]):
 
         print(f"\nParquet Package {i}\n")
-
-        dataxformer = DataXFormer(parts=parquets[i])
-        dataxformer.run(path_to_examples)
+        print(parquets[i].tolist())
+        #dataxformer = DataXFormer(parts=parquets[i])
+        #dataxformer.run(path_to_examples)
