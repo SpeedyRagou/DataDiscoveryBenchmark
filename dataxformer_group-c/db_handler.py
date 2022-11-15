@@ -15,14 +15,14 @@ class DBHandler:
     debug : bool
         If true, the number of result rows is limited to 10.
     """
-    def __init__(self, debug: bool = True, verbose: bool = False):
+    def __init__(self, debug: bool = True, verbose: bool = False, parts: list=None):
+        if parts is None:
+            parts = [0]
+
         self.con = duckdb.connect(database=':memory:')
         self.debug = debug
         self.verbose = verbose
 
-        parts = [0]
-        if not debug:
-            parts = range(500)
         load_dresden_db(self.con, parts=parts)
 
     def __generate_query(self, examples: np.ndarray, tau: int = 2) -> str:

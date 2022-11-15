@@ -15,8 +15,12 @@ class ExpectationMaximization:
             delta_epsilon: float = 0.5,
             alpha: float = 0.99,
             verbose: bool = True,
-            debug: bool = True
+            debug: bool = True,
+            parts: list = None
     ):
+        if parts is None:
+            parts = [0]
+        self.parts = parts
         self.delta_epsilon = delta_epsilon
         self.dbHandler = DBHandler(verbose=verbose, debug=debug)
         self.table_filter = TableFilter()
@@ -65,7 +69,6 @@ class ExpectationMaximization:
 
                 # union tables
                 if self.verbose:
-
                     print('\n', "############### Table Candidates ##############")
                     print(tables, '\n')
 
@@ -115,7 +118,6 @@ class ExpectationMaximization:
                         print('\n')
 
                     if not possible_candidates.empty:
-
                         possible_candidates.columns = answers.columns
                         answers = pd.concat([answers, possible_candidates], axis=0)
                         answers.drop_duplicates(inplace=True)
@@ -156,7 +158,7 @@ class ExpectationMaximization:
                 else:
                     delta_score += abs(self.__answer_scores[key])
 
-        if self.verbose:
+        if True:
             print(self.__table_scores)
             print(self.__answer_scores)
 
@@ -211,7 +213,7 @@ class ExpectationMaximization:
             prior = 0.5
 
             # formular for table_score
-            score = self.alpha * ((prior * good) /(prior * good + (1-prior) * (bad + sum_value)))
+            score = self.alpha * ((prior * good) / (prior * good + (1 - prior) * (bad + sum_value)))
 
             self.__table_scores[tuple(table)] = score
 
@@ -263,7 +265,7 @@ class ExpectationMaximization:
             # extract all distinct tuples (tableId, columnId1, ...) for x's answers
             all_tables = [tuple(table) for _, a in answers_x.iterrows()
                           for _, table in self.__lineage_answers[tuple(a)].iterrows()]
-            all_tables = set(all_tables)    # remove duplicates
+            all_tables = set(all_tables)  # remove duplicates
 
             score_of_none = 1.
             for table in all_tables:
@@ -292,4 +294,3 @@ class ExpectationMaximization:
                 f"WHERE {where_clause}"
 
         return duckdb.query(query).to_df()
-

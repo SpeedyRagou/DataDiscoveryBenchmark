@@ -29,9 +29,12 @@ def get_cleaned_text(text):
 
 
 class DataXFormer:
-    def __init__(self, max_path=2, delta_epsilon=0.5):
+    def __init__(self, max_path=2, delta_epsilon=0.5, parts: list =None):
+        if parts is None:
+            parts = [0]
         self.max_path = max_path  # Max Length for Joiner
         self.delta_epsilon = delta_epsilon  # Threshold for minimum change in expectation-maximization
+        self.parts = parts
 
     def run(self, path_to_input_csv: Path) -> pd.DataFrame:
         # load input csv
@@ -52,7 +55,7 @@ class DataXFormer:
         print(examples, "\n\n")
         print("Given Query Values:")
         print(inp, "\n\n")
-        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False)
+        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False, parts=self.parts)
         result = mainLoop.expectation_maximization(examples, inp)
 
         print()
