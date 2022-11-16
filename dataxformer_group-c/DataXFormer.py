@@ -29,12 +29,13 @@ def get_cleaned_text(text):
 
 
 class DataXFormer:
-    def __init__(self, max_path=2, delta_epsilon=0.5, parts: list =None):
+    def __init__(self, max_path=2, delta_epsilon=0.5, tau=2, parts: list =None):
         if parts is None:
             parts = [0]
         self.max_path = max_path  # Max Length for Joiner
         self.delta_epsilon = delta_epsilon  # Threshold for minimum change in expectation-maximization
         self.parts = parts
+        self.tau = tau
 
     def run(self, path_to_input_csv: Path) -> pd.DataFrame:
         # load input csv
@@ -44,8 +45,8 @@ class DataXFormer:
         inp = input_frame[input_frame[columns[-1]].isna()]
 
         # tokenize input csv
-        examples = examples.applymap(get_cleaned_text)
-        inp = inp.applymap(get_cleaned_text)
+        #examples = examples.applymap(get_cleaned_text)
+        #inp = inp.applymap(get_cleaned_text)
 
         # use nltk package for this
 
@@ -55,7 +56,7 @@ class DataXFormer:
         print(examples, "\n\n")
         print("Given Query Values:")
         print(inp, "\n\n")
-        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False, parts=self.parts)
+        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False, parts=self.parts, tau=self.tau)
         result = mainLoop.expectation_maximization(examples, inp)
 
         print()
@@ -67,6 +68,6 @@ class DataXFormer:
 
 
 if __name__ == '__main__':
-    path_to_examples = Path("../dataxformer_group-c/Examples/benchmark/CountryToLanguage.csv").resolve()
-    dataxformer = DataXFormer()
+    path_to_examples = Path("../dataxformer_group-c/Examples/selfmade_input_tableid_70681.csv").resolve()
+    dataxformer = DataXFormer(tau=2)
     dataxformer.run(path_to_examples)

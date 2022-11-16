@@ -14,6 +14,7 @@ class ExpectationMaximization:
             self,
             delta_epsilon: float = 0.5,
             alpha: float = 0.99,
+            tau=2,
             verbose: bool = True,
             debug: bool = True,
             parts: list = None
@@ -26,6 +27,7 @@ class ExpectationMaximization:
         self.table_filter = TableFilter()
         self.alpha = alpha
         self.verbose = verbose
+        self.tau = tau
 
         self.__inp = None
 
@@ -63,7 +65,7 @@ class ExpectationMaximization:
             if not finishedQuerying:
 
                 # get direct Transformation candidate
-                tables = self.dbHandler.fetch_candidates(answers)
+                tables = self.dbHandler.fetch_candidates(answers, tau=self.tau)
 
                 # get indirect Transformation candidates
 
