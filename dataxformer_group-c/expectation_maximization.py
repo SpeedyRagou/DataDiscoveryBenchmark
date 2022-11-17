@@ -81,7 +81,7 @@ class ExpectationMaximization:
                     rows = self.dbHandler.fetch_table_columns(table)
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
-                    if not self.table_filter.filter(answers, rows):
+                    if not self.table_filter.filter(examples, rows):
                         continue
 
                     input_columns = list(inp.columns)
