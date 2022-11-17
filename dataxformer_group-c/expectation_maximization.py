@@ -261,7 +261,7 @@ class ExpectationMaximization:
             self,
             answers: pd.DataFrame
     ):
-        for x in self.__inp.iloc[:, :-1].to_numpy().flatten():
+        for x in self.__inp.iloc[:, :-1].to_numpy():
             answers_x = self.__get_answers(answers, x)
 
             # extract all distinct tuples (tableId, columnId1, ...) for x's answers
