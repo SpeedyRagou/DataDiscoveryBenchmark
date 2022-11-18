@@ -81,7 +81,7 @@ class ExpectationMaximization:
                     rows = self.dbHandler.fetch_table_columns(table)
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
-                    if not self.table_filter.filter(answers, rows):
+                    if not self.table_filter.filter(examples, rows):
                         continue
 
                     input_columns = list(inp.columns)
@@ -121,7 +121,7 @@ class ExpectationMaximization:
 
                     if not possible_candidates.empty:
                         possible_candidates.columns = answers.columns
-                        answers = pd.concat([answers, possible_candidates], axis=0)
+                        answers = pd.concat([answers, possible_candidates], axis=0, ignore_index=True)
                         answers.drop_duplicates(inplace=True)
 
                         self.__lineage_tables[tuple(table)] = possible_candidates
