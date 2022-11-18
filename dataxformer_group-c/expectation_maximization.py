@@ -15,7 +15,7 @@ class ExpectationMaximization:
             delta_epsilon: float = 0.5,
             alpha: float = 0.99,
             tau=2,
-            verbose: bool = True,
+            verbose: bool = False,
             debug: bool = True,
             parts: list = None
     ):

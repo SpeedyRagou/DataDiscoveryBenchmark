@@ -68,6 +68,6 @@ class DataXFormer:
 
 
 if __name__ == '__main__':
-    path_to_examples = Path("../dataxformer_group-c/Examples/CountryToLanguage").resolve()
+    path_to_examples = Path("../dataxformer_group-c/Examples/CountryToLanguage.csv").resolve()
     dataxformer = DataXFormer(tau=2)
     dataxformer.run(path_to_examples)
