@@ -23,7 +23,8 @@ class ExpectationMaximization:
             parts = [0]
         self.parts = parts
         self.delta_epsilon = delta_epsilon
-        self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts)
+        self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts,
+                                   db_path="/home/becktepe/gittables_DXF_all.duckdb")
         self.table_filter = TableFilter()
         self.alpha = alpha
         self.verbose = verbose

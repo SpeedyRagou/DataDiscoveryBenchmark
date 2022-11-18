@@ -15,11 +15,19 @@ class DBHandler:
     debug : bool
         If true, the number of result rows is limited to 10.
     """
-    def __init__(self, debug: bool = True, verbose: bool = False, parts: list=None):
+    def __init__(
+            self,
+            debug: bool = True,
+            verbose: bool = False,
+            parts: list= None,
+            db_path: str = None):
         if parts is None:
             parts = [0]
 
-        self.con = duckdb.connect(database=':memory:')
+        if db_path is None:
+            self.con = duckdb.connect(database=':memory:')
+        else:
+            self.con = duckdb.connect(database=db_path)
         self.debug = debug
         self.verbose = verbose
 
