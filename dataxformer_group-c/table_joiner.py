@@ -1,5 +1,6 @@
 from typing import List
 import pandas as pd
+import duckdb
 
 from table_filter import TableFilter
 
@@ -12,10 +13,18 @@ class TableFilter:
     ----------
     max_length : int
         Maximum length of path when searching for indirect transformations.
+
+    tau : int
+        Minimum number of examples per column.
+
+    debug : bool
+        If true, the number of result rows is limited.
     """
 
-    def __init__(self, max_length: int):
+    def __init__(self, max_length: int, tau: int, debug: bool = False):
         self.max_length = max_length
+        self.tau = tau
+        self.debug = debug
 
     def execute(self, examples: pd.DataFrame, Q: set, t_e: pd.DataFrame) -> pd.DataFrame:
         """
@@ -47,7 +56,7 @@ class TableFilter:
             if path == 1:
 
                 # Find all tables that contain the x values of the examples:
-                t_x = self.query_for_tables(examples.iloc[:, :-1])
+                t_x = self.query_for_tables(examples.iloc[:, :-1], self.tau)
                 # Exclude tables that provide direct transformations of the examples:
                 t_x = t_x.merge(t_e, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
                 t_x = t_x.iloc[:, :-1]
@@ -63,23 +72,53 @@ class TableFilter:
 
         return NotImplemented
 
-    def query_for_tables(self, examples_x: pd.DataFrame) -> pd.DataFrame:
+    def query_for_tables(self, examples_x: pd.DataFrame, tau: int) -> pd.DataFrame:
         """
         Queries for tables that contain x-values of the examples.
 
         Parameters
         ----------
         examples_x : pd.DataFrame
-            DataFrame of examples.
+            DataFrame of examples (only x-values).
+
+        tau : int
+            Minimum number of examples per column.
 
         Returns
         -------
         pd.DataFrame
             Returns table, storing table-column indices of tables, that contain x-values of the examples.
         """
-        # TODO: Finish implementation!
+        examples_x = examples_x.to_numpy().T
+        x_cols = len(examples_x)
 
-        return NotImplemented
+        # outer select
+        query = f"SELECT colX1.TableId, "
+        for x in range(0, x_cols):
+            query += f"colX{x + 1}.ColumnId, "
+        query += f"colY.ColumnId " \
+                 f"FROM "
+
+        # subquery for x columns
+        for x in range(0, x_cols):
+            joint_list = "','".join(set(examples_x[x]))
+
+            query += f"\n   (SELECT TableId, ColumnId " \
+                     f"\n   FROM AllTables " \
+                     f"\n   WHERE CellValue IN ('{joint_list}') " \
+                     f"\n   GROUP BY TableId, ColumnId " \
+                     f"\n   HAVING COUNT(DISTINCT CellValue) >= {tau}) AS colX{x + 1},\n"
+
+        for x in range(0, x_cols - 1):
+            query += f"\nAND colX{x + 1}.TableId = colX{x + 2}.TableId "
+            query += f"\nAND colX{x + 1}.ColumnId <> colX{x + 2}.ColumnId "
+
+        if self.debug:
+            query += "\nLIMIT 50;"
+
+        con = duckdb.connect(database=':memory:')
+
+        return con.execute(query).fetch_df()
 
     def find_join_columns(self, table: pd.DataFrame, examples_x: pd.DataFrame) -> List[pd.DataFrame]:
         """
@@ -91,7 +130,7 @@ class TableFilter:
             Table from set of tables that contain the x values of the examples.
 
         examples_x : pd.DataFrame
-            DataFrame of examples.
+            DataFrame of examples (only x-values).
 
         Returns
         -------
