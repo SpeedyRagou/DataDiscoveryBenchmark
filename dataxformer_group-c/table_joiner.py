@@ -1,7 +1,6 @@
 from typing import List
 import pandas as pd
 
-from db_handler import DBHandler
 from table_filter import TableFilter
 
 
@@ -17,8 +16,6 @@ class TableFilter:
 
     def __init__(self, max_length: int):
         self.max_length = max_length
-        self.dbHandler = DBHandler(verbose=False, debug=True,
-                                   db_path="/home/becktepe/gittables_DXF_all.duckdb")
 
     def execute(self, examples: pd.DataFrame, Q: set, t_e: pd.DataFrame) -> pd.DataFrame:
         """
@@ -50,7 +47,7 @@ class TableFilter:
             if path == 1:
 
                 # Find all tables that contain the x values of the examples:
-                t_x = self.dbHandler.fetch_candidates(examples.iloc[:, :-1], tau=self.tau)  # TODO: Is dbHandler.fetch_candidates() able to process examples without Y?
+                t_x = self.query_for_tables(examples.iloc[:, :-1])
                 # Exclude tables that provide direct transformations of the examples:
                 t_x = t_x.merge(t_e, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
                 t_x = t_x.iloc[:, :-1]
@@ -63,6 +60,24 @@ class TableFilter:
 
             else:
                 pass  # TODO: Finish implementation!
+
+        return NotImplemented
+
+    def query_for_tables(self, examples_x: pd.DataFrame) -> pd.DataFrame:
+        """
+        Queries for tables that contain x-values of the examples.
+
+        Parameters
+        ----------
+        examples_x : pd.DataFrame
+            DataFrame of examples.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns table, storing table-column indices of tables, that contain x-values of the examples.
+        """
+        # TODO: Finish implementation!
 
         return NotImplemented
 
@@ -80,7 +95,7 @@ class TableFilter:
 
         Returns
         -------
-        pd.DataFrame
+        List[pd.DataFrame]
             Returns list of columns for Join.
         """
         # TODO: Use TableFilter.check_fd() here
