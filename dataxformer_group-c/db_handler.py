@@ -148,6 +148,52 @@ class DBHandler:
         # TODO implement
         raise NotImplementedError
 
+    def query_for_tables(self, examples_x: pd.DataFrame, tau: int) -> pd.DataFrame:
+        """
+        Queries for tables that contain x-values of the examples.
+
+        Parameters
+        ----------
+        examples_x : pd.DataFrame
+            DataFrame of examples (only x-values).
+
+        tau : int
+            Minimum number of examples per column.
+
+        Returns
+        -------
+        pd.DataFrame
+            Returns table, storing table-column indices of tables, that contain x-values of the examples.
+        """
+        examples_x = examples_x.to_numpy().T
+        x_cols = len(examples_x)
+
+        # outer select
+        query = f"SELECT colX1.TableId, "
+        for x in range(0, x_cols):
+            query += f"colX{x + 1}.ColumnId, "
+        query += f"colY.ColumnId " \
+                 f"FROM "
+
+        # subquery for x columns
+        for x in range(0, x_cols):
+            joint_list = "','".join(set(examples_x[x]))
+
+            query += f"\n   (SELECT TableId, ColumnId " \
+                     f"\n   FROM AllTables " \
+                     f"\n   WHERE CellValue IN ('{joint_list}') " \
+                     f"\n   GROUP BY TableId, ColumnId " \
+                     f"\n   HAVING COUNT(DISTINCT CellValue) >= {tau}) AS colX{x + 1},\n"
+
+        for x in range(0, x_cols - 1):
+            query += f"\nAND colX{x + 1}.TableId = colX{x + 2}.TableId "
+            query += f"\nAND colX{x + 1}.ColumnId <> colX{x + 2}.ColumnId "
+
+        if self.debug:
+            query += "\nLIMIT 50;"
+
+        return self.con.execute(query).fetch_df()
+
 
 if __name__ == "__main__":
     db = DBHandler()
