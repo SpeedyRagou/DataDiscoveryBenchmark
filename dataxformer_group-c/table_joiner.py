@@ -4,6 +4,7 @@ import duckdb
 from db_handler import DBHandler
 
 from table_filter import TableFilter
+from util import get_answers
 
 
 class TableJoiner:
@@ -51,6 +52,9 @@ class TableJoiner:
         pd.DataFrame
             Returns tables.
         """
+        tables = []
+        current_table_paths = []
+
         path = 1
 
         while abs(path) > self.max_length or False:  # TODO: Implement second condition!
@@ -62,24 +66,55 @@ class TableJoiner:
                 # Exclude tables that provide direct transformations of the examples:
                 t_x = t_x.merge(t_e, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
                 t_x = t_x.iloc[:, :-1]  # Delete '_merge'-column
+                x_ids = t_x.iloc[:, :-1]
 
                 for _, t in t_x.iterrows():
                     # Extract columns for Join by checking FD:
                     # t = ...add descriptive comment
                     table = self.__db_handler.fetch_table(t[0])
-                    columns = self.find_join_columns(table, examples.iloc[:, :-1], t[1:])
+                    columns = self.find_join_columns(table, t[1:])
+
                     for z_i in columns:
-                        pass  # TODO: Finish implementation!
+                        joinable_tables = self.__db_handler.fetch_candidates(
+                            pd.DataFrame({'x': table[z_i], 'y': examples.iloc[:, -1]}),
+                            tau=self.tau
+                        )
 
-                        t_j = self.find_joinable_tables(z_i, examples, t)
-                        # if len(t_j) > 0 and covered_examples(t_j, examples) > self.tau:
+                        if len(joinable_tables) > 0:
+                            for _, t_j in joinable_tables.iterrows():
+                                table_j = self.__db_handler.fetch_table(t_j[0])
+                                z_j_id, z_y_id = t_j[1], t_j[2]
 
+                                x_ids_selection = ""
+                                for x_id in x_ids:
+                                    x_ids_selection += f"table.\"{x_id}\", "
+
+                                query = f"SELECT {x_ids_selection} table_j.\"{table.columns[z_j_id]}\" " \
+                                        f"FROM table JOIN table_j " \
+                                        f"ON (table.\"{table.columns[z_i]}\" = table_j.\"{table.columns[z_j_id]}\")"
+
+                                joined_table = duckdb.query(query).to_df()
+
+                                on_clause = ""
+                                for ex_col, x_id in zip(range(examples.columns[:-1]), x_ids):
+                                    on_clause += f"examples.\"{ex_col}\" = table.\"{x_id}\" AND "
+                                on_clause = on_clause[:-4]
+
+                                query = f"SELECT joined_table.* " \
+                                        f"FROM joined_table JOIN examples " \
+                                        f"ON ({on_clause});"
+
+                                joined_examples_table = duckdb.query(query).to_df()
+
+                                if len(joined_examples_table) > self.tau:
+                                    tables += [joined_table]
+                            current_table_paths += [(path, (t, z_i))]
             else:
                 pass  # TODO: Finish implementation!
 
         return NotImplemented
 
-    def find_join_columns(self, table: pd.DataFrame, examples_x: pd.DataFrame, x_col_ids: List[int]) -> List[pd.DataFrame]:
+    def find_join_columns(self, table: pd.DataFrame, x_col_ids: List[int]) -> List[int]:
         """
         Extracts columns for Join by checking FD.
 
@@ -96,12 +131,19 @@ class TableJoiner:
 
         Returns
         -------
-        List[pd.DataFrame]
-            Returns list of columns for Join.
+        List[int]
+            Returns list of columns ids for Join.
         """
-        # TODO: Use TableFilter.check_fd() here
+        columns = []
+        for z in range(len(table.columns)):
+            if z in x_col_ids:
+                continue
 
-        return NotImplemented
+            sub_table = table.iloc[:, x_col_ids + [z]]
+            if TableFilter.check_fd(sub_table):
+                columns += [z]
+
+        return columns
 
     def find_joinable_tables(
             self,
@@ -139,3 +181,13 @@ if __name__ == "__main__":
     df = df1.merge(df2, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
 
     print(df.iloc[:, :-1])
+
+    # City, Country -> Zip
+    # City, Country -|-> Temp
+    t1 = pd.DataFrame({'City':    ["A",  "A",  "C",  "D"],    # X1
+                       'Country': ["AT", "AT", "CT", "DT"],   # Z
+                       'Zip':     [1,    1,    3,    4],      # Y
+                       'Temp':    [55,   55,   73,   85]})    #
+
+    # print(find_join_columns(t1, [0, 1]))
+
