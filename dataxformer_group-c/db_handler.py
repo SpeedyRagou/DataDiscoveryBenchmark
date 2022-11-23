@@ -172,8 +172,7 @@ class DBHandler:
         query = f"SELECT colX1.TableId, "
         for x in range(0, x_cols):
             query += f"colX{x + 1}.ColumnId, "
-        query += f"colY.ColumnId " \
-                 f"FROM "
+        query = query[:-2] + f" FROM "
 
         # subquery for x columns
         for x in range(0, x_cols):

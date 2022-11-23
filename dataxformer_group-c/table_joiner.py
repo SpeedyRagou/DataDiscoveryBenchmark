@@ -61,26 +61,25 @@ class TableJoiner:
                 t_x = self.__db_handler.query_for_tables(examples.iloc[:, :-1], self.tau)
                 # Exclude tables that provide direct transformations of the examples:
                 t_x = t_x.merge(t_e, how='outer', indicator=True).loc[lambda x: x['_merge'] == 'left_only']
-                t_x = t_x.iloc[:, :-1]
+                t_x = t_x.iloc[:, :-1]  # Delete '_merge'-column
 
-                for t in t_x:
+                for _, t in t_x.iterrows():
                     # Extract columns for Join by checking FD:
-                    columns = self.find_join_columns(t, examples.iloc[:, :-1])
+                    # t = ...add descriptive comment
+                    table = self.__db_handler.fetch_table(t[0])
+                    columns = self.find_join_columns(table, examples.iloc[:, :-1], t[1:])
                     for z_i in columns:
                         pass  # TODO: Finish implementation!
 
                         t_j = self.find_joinable_tables(z_i, examples, t)
                         # if len(t_j) > 0 and covered_examples(t_j, examples) > self.tau:
 
-
-
-
             else:
                 pass  # TODO: Finish implementation!
 
         return NotImplemented
 
-    def find_join_columns(self, table: pd.DataFrame, examples_x: pd.DataFrame) -> List[pd.DataFrame]:
+    def find_join_columns(self, table: pd.DataFrame, examples_x: pd.DataFrame, x_col_ids: List[int]) -> List[pd.DataFrame]:
         """
         Extracts columns for Join by checking FD.
 
@@ -91,6 +90,9 @@ class TableJoiner:
 
         examples_x : pd.DataFrame
             DataFrame of examples (only x-values).
+
+        x_col_ids : List[int]
+            .
 
         Returns
         -------
