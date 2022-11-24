@@ -19,7 +19,7 @@ class DBHandler:
             self,
             debug: bool = True,
             verbose: bool = False,
-            parts: list= None,
+            parts: list = None,
             db_path: str = None):
         if parts is None:
             parts = [0]
@@ -135,7 +135,8 @@ class DBHandler:
                                          f"ORDER BY ColumnId, RowId ").fetch_df()
 
         table = pd.DataFrame()
-        for col_id, column_content in table_content.groupby(['ColumnId']):
+        for col_id, group in zip(row[1:], table_content.groupby(['ColumnId'])):
+            column_content = group[1]
             table[col_id] = list(column_content['CellValue'])
 
         return table
