@@ -26,12 +26,11 @@ class DBHandler:
 
         if db_path is None:
             self.con = duckdb.connect(database=':memory:')
+            load_dresden_db(self.con, parts=parts)
         else:
             self.con = duckdb.connect(database=db_path)
         self.debug = debug
         self.verbose = verbose
-
-        load_dresden_db(self.con, parts=parts)
 
     def __generate_query(self, examples: np.ndarray, tau: int = 2) -> str:
         x_cols = len(examples) - 1
