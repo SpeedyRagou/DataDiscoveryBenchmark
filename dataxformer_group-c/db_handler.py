@@ -135,9 +135,12 @@ class DBHandler:
                                          f"ORDER BY ColumnId, RowId ").fetch_df()
 
         table = pd.DataFrame()
-        for col_id, group in zip(row[1:], table_content.groupby(['ColumnId'])):
+        for col_id, group in table_content.groupby(['ColumnId']):
             column_content = group[1]
             table[col_id] = list(column_content['CellValue'])
+
+        # reorder table by initial col ids
+        table = table[row[1:]]
 
         return table
 
