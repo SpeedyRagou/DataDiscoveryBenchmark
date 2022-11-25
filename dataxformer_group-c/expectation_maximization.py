@@ -15,7 +15,7 @@ class ExpectationMaximization:
             delta_epsilon: float = 0.5,
             alpha: float = 0.99,
             tau=2,
-            verbose: bool = False,
+            verbose: bool = True,
             debug: bool = True,
             parts: list = None
     ):
@@ -83,6 +83,8 @@ class ExpectationMaximization:
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
                     if not self.table_filter.filter(examples, rows):
+                        if self.verbose:
+                            print(f"Filtered table {table_id}")
                         continue
 
                     input_columns = list(inp.columns)

@@ -78,11 +78,13 @@ class TableFilter:
             # Get all indices of rows that contain y in the last column (y-column):
             y_idx = table.index[table.iloc[:, -1] == row_Y].tolist()
             if x_idx:
-                if set(x_idx).isdisjoint(y_idx):
-                    return table_passes
+                if len(set(x_idx).intersection(y_idx)) < 2:
+                    return False
+                #if set(x_idx).isdisjoint(y_idx):
+                #    return table_passes
 
         # Check functional dependency
-        table_passes = self.check_fd(table)
+        #table_passes = self.check_fd(table)
 
         return table_passes
 
