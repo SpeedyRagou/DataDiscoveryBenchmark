@@ -28,6 +28,9 @@ class TableFilter:
         """
         t = table
 
+        # TODO: Before FD-check do some cleaning on table to remove NaN values
+        # here
+
         # query to extract all rows that violate functional dependency
         query = f"SELECT * " \
                 f"FROM t t1 , t t2 " \
@@ -41,7 +44,7 @@ class TableFilter:
             return False
         return True
 
-    def filter(self, examples: pd.DataFrame, table: pd.DataFrame) -> bool:
+    def filter(self, examples: pd.DataFrame, table: pd.DataFrame, tau: int) -> bool:
         """
         Takes a candidate table, checks whether column-row alignment of examples in that table match
         and whether functional dependency (FD) holds.
@@ -58,6 +61,9 @@ class TableFilter:
         table : pd.DataFrame
             A candidate table.
 
+        tau : int
+            Minimum number of examples per column.
+
         Returns
         -------
         bool
@@ -71,6 +77,7 @@ class TableFilter:
         x = examples.iloc[:, :-1]   # x = all columns except last
         y = examples.iloc[:, -1]    # y = last column
 
+        count = 0
         # Check column-row alignment of examples in table
         for (_, row_X), row_Y in zip(x.iterrows(), y):
             # Get all indices of rows that contain row_X = [x1, x2, ..., xn] in the x-columns:
@@ -78,10 +85,11 @@ class TableFilter:
             # Get all indices of rows that contain y in the last column (y-column):
             y_idx = table.index[table.iloc[:, -1] == row_Y].tolist()
             if x_idx:
-                if len(set(x_idx).intersection(y_idx)) < 2:
-                    return False
-                #if set(x_idx).isdisjoint(y_idx):
-                #    return table_passes
+                if not set(x_idx).isdisjoint(y_idx):    # same as x_idx INTERSECTS y_idx (most efficient way)
+                    count += 1
+                if count >= tau:                        # tau examples fulfill column-row alignment
+                    table_passes = True
+                    break
 
         # Check functional dependency
         #table_passes = self.check_fd(table)
@@ -116,7 +124,7 @@ if __name__ == "__main__":
 
     '''Execution of test'''
     tf = TableFilter()
-    print(tf.filter(ex1, table2))
+    print(tf.filter(ex1, table1, 2))
 
     '''Get index of DataFrame for rows that are identical to elements of an array (Version B)'''
     # temp = pd.DataFrame({"A": [1, 2, 3, 4], "B": [4, 5, 6, 7], "C": [7, 8, 9, 10]})
