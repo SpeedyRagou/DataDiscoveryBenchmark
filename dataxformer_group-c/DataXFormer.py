@@ -47,6 +47,12 @@ class DataXFormer:
         # tokenize input csv
         #examples = examples.applymap(get_cleaned_text)
         #inp = inp.applymap(get_cleaned_text)
+        examples = examples.astype(str).applymap(str.lower)
+        inp = inp.astype(str).applymap(str.lower)
+
+        # lower input for gittables
+        examples = examples.astype(str).str.lower()
+        inp = inp.astype(str).str.lower()
 
         # use nltk package for this
 
