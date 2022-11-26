@@ -167,7 +167,12 @@ class ExpectationMaximization:
             print(self.__table_scores)
             print(self.__answer_scores)
 
-        return self.__answer_scores
+        # add answers scores to answers dataframe
+        score_values = pd.Series(np.fromiter((
+            self.__answer_scores.get(tuple(row), 1.0) for index, row in answers.iterrows()),
+            dtype=np.float))
+
+        return pd.concat((answers, score_values), axis=1)
 
     def __updateTableScore(self, answers, tables: pd.DataFrame):
         for index, table in tables.iterrows():

@@ -67,7 +67,7 @@ class DataXFormer:
         print("---------------------------------------------")
         print("Final result")
         print("---------------------------------------------")
-        print(sorted(list(result.items()), key=lambda x: x[1], reverse=True))
+        print(sorted(list(result), key=lambda x: x[1], reverse=True))
         print("---------------------------------------------")
 
 
