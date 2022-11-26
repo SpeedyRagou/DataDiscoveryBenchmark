@@ -63,6 +63,12 @@ class DataXFormer:
         mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False, parts=self.parts, tau=self.tau)
         result = mainLoop.expectation_maximization(examples, inp)
 
+        query = f"SELECT *, MAX(\"{result.columns[-1]}\")" \
+                f"FROM result " \
+                f"GROUP BY"
+
+        result = result.groupby(result.columns[:-2]).max(numeric_only=True)
+
         print()
         print("---------------------------------------------")
         print("Final result")
