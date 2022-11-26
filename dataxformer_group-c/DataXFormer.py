@@ -67,7 +67,7 @@ class DataXFormer:
                 f"FROM result " \
                 f"GROUP BY"
 
-        idx = result.groupby(result.columns[:-2])[result.columns[-1]].transform(max) == result.columns[-1]
+        idx = result.groupby("country")[result.columns[-1]].transform(max) == result.columns[-1]
 
         print()
         print("---------------------------------------------")
