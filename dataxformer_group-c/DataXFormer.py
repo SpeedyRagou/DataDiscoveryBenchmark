@@ -67,7 +67,7 @@ class DataXFormer:
                 f"FROM result " \
                 f"GROUP BY"
 
-        result = result.groupby(result.columns[:-2]).max(numeric_only=True)
+        result = result.groupby(result.columns[:-2]).iloc[:, -1].transform(max) == result.iloc[:, -1]
 
         print()
         print("---------------------------------------------")
