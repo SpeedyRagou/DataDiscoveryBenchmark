@@ -64,11 +64,11 @@ class DataXFormer:
                                            tau=self.tau, db_path="/home/becktepe/gittables_DXF_all.duckdb")
         result = mainLoop.expectation_maximization(examples, inp)
 
-        query = f"SELECT *, MAX(\"{result.columns[-1]}\")" \
-                f"FROM result " \
-                f"GROUP BY"
+        x_columns = list(result.columns[:-2])
+        idx = result.groupby(x_columns)[result.columns[-1]].transform(max) == result[result.columns[-1]]
 
-        idx = result.groupby(["country"])["0"].transform(max) == result["0"]
+        # TODO join input and results on x columns
+        print(pd.merge(inp, result[idx]))
 
         print()
         print("---------------------------------------------")
@@ -77,8 +77,12 @@ class DataXFormer:
         print(result[idx])
         print("---------------------------------------------")
 
+        return result[idx]
+
 
 if __name__ == '__main__':
     path_to_examples = Path("../dataxformer_group-c/Examples/CountryToLanguage.csv").resolve()
     dataxformer = DataXFormer(tau=2)
     dataxformer.run(path_to_examples)
+
+    # TODO save result csv file

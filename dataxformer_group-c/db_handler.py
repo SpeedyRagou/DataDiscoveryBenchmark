@@ -25,10 +25,10 @@ class DBHandler:
             parts = [0]
 
         if db_path is None:
-            self.con = duckdb.connect(database=':memory:')
+            self.con = duckdb.connect(database=':memory:', read_only=True)
             load_dresden_db(self.con, parts=parts)
         else:
-            self.con = duckdb.connect(database=db_path)
+            self.con = duckdb.connect(database=db_path, read_only=True)
         self.debug = debug
         self.verbose = verbose
 

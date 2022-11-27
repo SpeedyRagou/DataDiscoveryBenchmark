@@ -171,9 +171,13 @@ class ExpectationMaximization:
             print(self.__answer_scores)
 
         # add answers scores to answers dataframe
+        # TODO use unique answer score column name
         score_values = pd.Series(np.fromiter((
             self.__answer_scores.get(tuple(row), 1.0) for index, row in answers.iterrows()),
-            dtype=np.float))
+            dtype=np.float),
+            name="dataxformer_answer_score",
+            dtype=np.float
+        )
 
         return pd.concat((answers, score_values), axis=1)
 
