@@ -60,7 +60,8 @@ class DataXFormer:
         print(examples, "\n\n")
         print("Given Query Values:")
         print(inp, "\n\n")
-        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False, parts=self.parts, tau=self.tau)
+        mainLoop = ExpectationMaximization(self.delta_epsilon, 0.99, debug=False, parts=self.parts,
+                                           tau=self.tau, db_path="/home/becktepe/gittables_DXF_all.duckdb")
         result = mainLoop.expectation_maximization(examples, inp)
 
         query = f"SELECT *, MAX(\"{result.columns[-1]}\")" \

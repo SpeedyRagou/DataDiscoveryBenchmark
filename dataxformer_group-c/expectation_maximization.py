@@ -17,14 +17,14 @@ class ExpectationMaximization:
             tau=2,
             verbose: bool = True,
             debug: bool = True,
-            parts: list = None
+            parts: list = None,
+            db_path: str = None
     ):
         if parts is None:
             parts = [0]
         self.parts = parts
         self.delta_epsilon = delta_epsilon
-        self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts,
-                                   db_path="/home/becktepe/gittables_DXF_all.duckdb")
+        self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts, db_path=db_path)
         self.table_filter = TableFilter()
         self.alpha = alpha
         self.verbose = verbose
@@ -69,14 +69,17 @@ class ExpectationMaximization:
                 tables = self.dbHandler.fetch_candidates(answers, tau=self.tau)
 
                 # get indirect Transformation candidates
+                joined_tables = []
 
+
+
+                # [TABLE, colx1, ....]
                 # union tables
                 if self.verbose:
                     print('\n', "############### Table Candidates ##############")
                     print(tables, '\n')
 
                 for index, table in tables.iterrows():
-
                     table_id = table[0]
 
                     rows = self.dbHandler.fetch_table_columns(table)
