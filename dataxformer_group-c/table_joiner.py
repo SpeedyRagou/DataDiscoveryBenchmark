@@ -108,8 +108,10 @@ class TableJoiner:
 
         for _, t_z in t_x.iterrows():
             # t_z = [table_id, col1_id, col2_id]
+            # fetch tables that contain x values for path = 1 or z values for path > 1
             table_z = self.__db_handler.fetch_table(t_z[0])
 
+            # for path > 1 join table of previous iteration on new table found for z
             if joinable_table is not None:
                 table_p, z = joinable_table
 
@@ -124,6 +126,9 @@ class TableJoiner:
             columns = self.find_join_columns(table_z, t_z[1:])
 
             for z_i in columns:
+                # fetch tables that can be joined on x (path = 1) or z (path > 1) and contain y
+                # next part requires only tables that contain y,
+                # we are not interested in other tables
                 joinable_tables = self.__db_handler.fetch_candidates(
                     pd.DataFrame({'x': table_z[z_i], 'y': y_values}),
                     tau=self.tau
@@ -131,6 +136,7 @@ class TableJoiner:
 
                 if len(joinable_tables) > 0:
                     for _, t_j in joinable_tables.iterrows():
+                        # join current table with fetched join candidate table containing y
                         table_j = self.__db_handler.fetch_table(t_j[0])
                         z_j_id, z_y_id = t_j[1], t_j[2]
 
@@ -145,8 +151,11 @@ class TableJoiner:
                             on_clause += f"x_values.\"{ex_col}\" = table_z.\"{x_id}\" AND "
                         on_clause = on_clause[:-4]
 
+                        # check if joined table contains at least tau examples
+                        # maybe we do exact row alignment checks later
+                        # TODO use examples here instead of x_values (maybe???)
                         query = f"SELECT joined_table.* " \
-                                f"FROM joined_table JOIN x_values " \
+                                f"FROM joined_table JOIN x_values " \   
                                 f"ON ({on_clause});"
 
                         joined_examples_table = duckdb.query(query).to_df()
@@ -160,6 +169,7 @@ class TableJoiner:
                                     f"FROM table_z JOIN table_j " \
                                     f"ON (table_z.\"{table_z.columns[z_i]}\" = table_j.\"{table_z.columns[z_j_id]}\")"
 
+                            # TODO implement table id + dict, output
                             #tables += [pd.Series([self.__cur_table_id] + x_ids + z)]
                             tables += [joined_table]
                             self.__cur_table_id -= 1
