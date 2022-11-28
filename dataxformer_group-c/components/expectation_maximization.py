@@ -5,6 +5,7 @@ import pandas as pd
 
 from .db_handler import DBHandler
 from .table_filter import TableFilter
+from .table_joiner import TableJoiner
 import duckdb
 
 class ExpectationMaximization:
@@ -56,13 +57,16 @@ class ExpectationMaximization:
             parts = [0]
         self.parts = parts
 
-        self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts, db_path=db_path)
-        self.table_filter = TableFilter()
-
         self.delta_epsilon = delta_epsilon
         self.alpha = alpha
         self.tau = tau
         self.max_path = max_path
+
+        self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts, db_path=db_path)
+        self.table_filter = TableFilter()
+        self.table_joiner = TableJoiner(db_handler=self.dbHandler, max_length=self.max_path, tau=self.tau, verbose=self.verbose, debug=self.debug)
+
+
 
         self.__inp = None
 
@@ -95,6 +99,8 @@ class ExpectationMaximization:
         finishedQuerying = False
         delta_score = 0
 
+        indirect_tables_dict = None
+
         for index, row in examples.iterrows():
             self.__answer_scores[tuple(row)] = 1.0
 
@@ -115,9 +121,14 @@ class ExpectationMaximization:
                 # get indirect Transformation candidates
                 if self.use_table_joiner:
                     # TODO call table joiner component
-                    joined_tables = []
+                    indirect_tables, indirect_tables_dict = self.table_joiner.execute(examples, answers)
+                    indirect_tables = pd.DataFrame(indirect_tables)
 
+                    tables = pd.concat([tables, indirect_tables], axis=0, ignore_index=True)
 
+                    if self.verbose:
+                        print("############# TableJoiner Results ###############\n")
+                        print(indirect_tables)
 
                 # [TABLE, colx1, ...., coly]
                 # TODO union tables
@@ -128,7 +139,12 @@ class ExpectationMaximization:
                 for index, table in tables.iterrows():
                     table_id = table[0]
 
-                    rows = self.dbHandler.fetch_table_columns(table)
+                    if table_id < 0:
+                        if indirect_tables_dict is None:
+                            raise Exception("Found negative table id but no dict was found")
+                        rows = indirect_tables_dict[tuple(table)]
+                    else:
+                        rows = self.dbHandler.fetch_table_columns(table)
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
                     if not self.table_filter.filter(examples, rows, self.tau):

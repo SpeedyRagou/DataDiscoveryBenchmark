@@ -4,10 +4,6 @@ import pandas as pd
 from components.expectation_maximization import ExpectationMaximization
 
 
-
-
-
-
 class DataXFormer:
     """
     Provides an easy-to-use interface that applies DataXFormer on a given dataset by utilizing dresden web tables or
@@ -98,7 +94,6 @@ class DataXFormer:
         examples = examples.astype(str).applymap(str.lower)
         inp = inp.astype(str).applymap(str.lower)
 
-
         # call modules (Right now only ExpectationMaximization)
         if self.verbose:
             print("Given Examples:")
@@ -138,7 +133,7 @@ if __name__ == '__main__':
     path_to_examples = Path("./Examples/benchmark/CountryToLanguage.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
-    dataxformer = DataXFormer(verbose=True)
+    dataxformer = DataXFormer(verbose=True, use_table_joiner=True)
     transformed_dataframe = dataxformer.run(frame)
 
     # TODO save result csv file

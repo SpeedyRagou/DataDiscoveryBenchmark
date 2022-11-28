@@ -1,9 +1,9 @@
-from typing import List, Tuple
+from typing import List, Tuple, Any, Dict
 import pandas as pd
 import duckdb
-from db_handler import DBHandler
+from .db_handler import DBHandler
 
-from table_filter import TableFilter
+from .table_filter import TableFilter
 
 
 class TableJoiner:
@@ -22,15 +22,17 @@ class TableJoiner:
         If true, the number of result rows is limited.
     """
 
-    def __init__(self, db_handler: DBHandler, max_length: int, tau: int, debug: bool = False):
+    def __init__(self, db_handler: DBHandler, max_length: int, tau: int, verbose: bool = False, debug: bool = False):
         self.__db_handler = db_handler
         self.max_length = max_length
         self.tau = tau
+        self.verbose = verbose
         self.debug = debug
         self.__seen_tables: pd.DataFrame
         self.__cur_table_id = -1
+        self.table_dict = {}
 
-    def execute(self, examples: pd.DataFrame, t_e: pd.DataFrame) -> List[pd.DataFrame]:
+    def execute(self, examples: pd.DataFrame, t_e: pd.DataFrame) -> Tuple[List[Any], Dict[Any, Any]]:
         """
         Joining Tables to find indirect transformations.
 
@@ -50,6 +52,11 @@ class TableJoiner:
         List[pd.DataFrame]
             Returns tables.
         """
+
+        if self.verbose:
+            print("############# Starting TableJoiner ###############\n")
+
+
         tables = []
         current_table_paths = []
         joined_tables = {}
@@ -59,6 +66,9 @@ class TableJoiner:
         path = 1
 
         while abs(path) > self.max_length or False:  # TODO: Implement second condition!
+            if self.verbose:
+                print(f"############# Starting TableJoiner (Path={path}) ###############\n")
+
             if path == 1:
                 new_tables, new_table_paths = self.__table_join_iteration(
                     path,
@@ -83,7 +93,7 @@ class TableJoiner:
             tables += new_tables
             current_table_paths = new_table_paths
 
-        return tables
+        return tables, self.table_dict
 
     def __table_join_iteration(
             self,
@@ -104,6 +114,9 @@ class TableJoiner:
 
         tables = []
         current_table_paths = []
+
+        if self.verbose:
+            print(f"Found:\n{t_x}")
 
         for _, t_z in t_x.iterrows():
             # t_z = [table_id, col1_id, col2_id]
@@ -154,7 +167,7 @@ class TableJoiner:
                         # maybe we do exact row alignment checks later
                         # TODO use examples here instead of x_values (maybe???)
                         query = f"SELECT joined_table.* " \
-                                f"FROM joined_table JOIN x_values " \   
+                                f"FROM joined_table JOIN x_values " \
                                 f"ON ({on_clause});"
 
                         joined_examples_table = duckdb.query(query).to_df()
@@ -164,14 +177,24 @@ class TableJoiner:
                             for x_id in x_ids:
                                 x_ids_selection += f"table_z.\"{x_id}\", "
 
-                            query = f"SELECT {x_ids_selection} table_j.\"{table_z.columns[z_j_id]}\" " \
+                            query = f"SELECT {x_ids_selection} table_j.\"{table_z.columns[z_y_id]}\" " \
                                     f"FROM table_z JOIN table_j " \
                                     f"ON (table_z.\"{table_z.columns[z_i]}\" = table_j.\"{table_z.columns[z_j_id]}\")"
 
+                            important_columns_table = duckdb.query(query).to_df()
+
                             # TODO implement table id + dict, output
-                            #tables += [pd.Series([self.__cur_table_id] + x_ids + z)]
-                            tables += [joined_table]
+                            series = [self.__cur_table_id] + [i for i in range(len(important_columns_table.columns))]
+
+                            if self.verbose:
+                                print(f"Added:\n{series}\n for \n{important_columns_table}")
+
+                            series = tuple(series)
+                            tables += [series]
+                            self.table_dict[series] = important_columns_table
+
                             self.__cur_table_id -= 1
+
                     current_table_paths += [(path, (table_z, z_i))]
 
         return tables, current_table_paths
