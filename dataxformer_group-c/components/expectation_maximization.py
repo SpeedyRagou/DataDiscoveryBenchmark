@@ -1,34 +1,68 @@
-from collections import defaultdict
-from typing import Dict
-import duckdb
+from pathlib import Path
+
 import numpy as np
 import pandas as pd
-from datadiscoverybench.utils import load_dresden_db
-from db_handler import DBHandler
-from table_filter import TableFilter
+
+from .db_handler import DBHandler
+from .table_filter import TableFilter
 import duckdb
 
-
 class ExpectationMaximization:
+    """
+    Implements the Expectation-Maximization algorithm as a component for DataXFormer
+    """
     def __init__(
             self,
             delta_epsilon: float = 0.5,
             alpha: float = 0.99,
-            tau=2,
-            verbose: bool = True,
-            debug: bool = True,
+            tau: int = 2,
+            max_path: int = 2,
             parts: list = None,
-            db_path: str = None
+            db_path: Path = None,
+            use_table_joiner: bool = False,
+            verbose: bool = True,
+            debug: bool = True
+
     ):
+        """
+        Parameters:
+        --------------
+        :param delta_epsilon:
+        defines threshold that measures if expectation-maximization has converged
+        :param alpha:
+        defines the smoothing factor for table score updating. Should only be a little lower than 1
+        :param tau:
+        defines how many examples should be in a table to be seen as a candidate
+        :param max_path:
+        defines how many iterations the table joiner is allowed to do
+        :param parts:
+        defines which parquet of the dresden web tables is loaded. The integers in this list should be between [0,499].
+        If not given, DataXFormer will assume parts = [0]
+        :param db_path:
+        takes a path to a duckDB database file, if user wants to use another database than dresden web tables or the
+        user wants to exploit disk for the database. If given parameter parts is ignored
+        :param use_table_joiner:
+        decides if DataXFormer should use the TableJoiner Component
+        :param verbose:
+        decides if DataXFormer should print useful information
+        :param debug:
+        decides if the sql-query is limited to 50 to cut runtime for testing.
+        """
+        self.use_table_joiner = use_table_joiner
+        self.verbose = verbose
+        self.debug = debug
+
         if parts is None:
             parts = [0]
         self.parts = parts
-        self.delta_epsilon = delta_epsilon
+
         self.dbHandler = DBHandler(verbose=verbose, debug=debug, parts=parts, db_path=db_path)
         self.table_filter = TableFilter()
+
+        self.delta_epsilon = delta_epsilon
         self.alpha = alpha
-        self.verbose = verbose
         self.tau = tau
+        self.max_path = max_path
 
         self.__inp = None
 
@@ -41,6 +75,19 @@ class ExpectationMaximization:
             print("WARNING: smoothing_factor alpha should always be only slightly lower than one")
 
     def expectation_maximization(self, examples: pd.DataFrame, inp: pd.DataFrame):
+        """
+        This functions implements the Expectation-Maximization algorithm as describe in the paper for DataxFormer
+
+        Parameters:
+        ------------
+        :param examples: A pandas DataFrame that contains all given Examples for the transformation
+        :param inp: A pandas DataFrame that contains all query values
+        :return: A pandas Dataframe that contains all found transformation with an extra row that contains the score
+        of the transformation
+        """
+
+
+        # setting up environment of loop
         self.__inp = inp.copy()
 
         answers = examples.copy()
@@ -52,9 +99,6 @@ class ExpectationMaximization:
             self.__answer_scores[tuple(row)] = 1.0
 
         iteration = 0
-
-        if self.verbose:
-            print("Finished setting up environment")
 
         while not finishedQuerying or delta_score > self.delta_epsilon:
 
@@ -69,12 +113,14 @@ class ExpectationMaximization:
                 tables = self.dbHandler.fetch_candidates(answers, tau=self.tau)
 
                 # get indirect Transformation candidates
-                joined_tables = []
+                if self.use_table_joiner:
+                    # TODO call table joiner component
+                    joined_tables = []
 
 
 
-                # [TABLE, colx1, ....]
-                # union tables
+                # [TABLE, colx1, ...., coly]
+                # TODO union tables
                 if self.verbose:
                     print('\n', "############### Table Candidates ##############")
                     print(tables, '\n')
@@ -99,6 +145,7 @@ class ExpectationMaximization:
                         print(rows)
                         print('\n')
 
+                    # setting up a sql-query to find all transformations
                     select_statement = ""
                     for col_row in rows_columns:
                         select_statement += f" \"{col_row}\","
@@ -110,11 +157,11 @@ class ExpectationMaximization:
                         on_statement += f"\"{col_row}\"=\"{col_in}\" AND "
                     on_statement = on_statement[: len(on_statement) - 5]
 
-                    # find all transformations in table
                     transformation_query = f"SELECT {select_statement} " \
                                            f"FROM rows JOIN inp " \
                                            f"ON ({on_statement})"
 
+                    # find all transformations in table
                     possible_candidates = duckdb.query(transformation_query).to_df()
 
                     if possible_candidates.empty:
@@ -125,6 +172,7 @@ class ExpectationMaximization:
                         print(possible_candidates)
                         print('\n')
 
+                    # updating the lineage of table
                     if not possible_candidates.empty:
                         possible_candidates.columns = answers.columns
                         answers = pd.concat([answers, possible_candidates], axis=0, ignore_index=True)
@@ -133,6 +181,7 @@ class ExpectationMaximization:
                         self.__lineage_tables[tuple(table)] = possible_candidates
                         self.__lineage_tables[tuple(table)].drop_duplicates(inplace=True)
 
+                    # updating lineage of answers
                     for index, candidate in possible_candidates.iterrows():
 
                         key = tuple(candidate)
@@ -182,6 +231,14 @@ class ExpectationMaximization:
         return pd.concat((answers, score_values), axis=1)
 
     def __updateTableScore(self, answers, tables: pd.DataFrame):
+        """
+        Implements the UpdateTableScore step of the Expectation-Maximization algoritm
+
+        :param answers: All found transformations until now
+        :param tables: All tables that were found to contain at least tau transformations
+        :return:
+        """
+
         for index, table in tables.iterrows():
             good = 0
             bad = 0
@@ -235,6 +292,15 @@ class ExpectationMaximization:
             self.__table_scores[tuple(table)] = score
 
     def __isMax(self, candidate: tuple, answers: pd.DataFrame) -> bool:
+        """
+        Checks if given candidate has the highest score of all transformations for the same x value
+
+        Parameters:
+        ------------
+        :param candidate: the transformation that should be checked
+        :param answers: all found transformations until now
+        :return: a boolean that is true if score is the highest
+        """
 
         # preparing where clause for all x_columns
         where_clause = ""
@@ -257,6 +323,15 @@ class ExpectationMaximization:
         return not (all_scores > self.__answer_scores.get(candidate, 1.0)).any()
 
     def __getUnseenX(self, coveredX: pd.DataFrame, answers: pd.DataFrame):
+        """
+        Implements the retrieval of the complement of coveredX
+
+        Parameters:
+        -------------
+        :param coveredX: All transformations that are covered by the table
+        :param answers: all transformations found until now
+        :return: A pandas DataFrame that is answers - coveredX
+        """
 
         # generate where clause that can handle all x_columns
         where_clause = ""

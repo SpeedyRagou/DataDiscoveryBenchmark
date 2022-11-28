@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import duckdb
 import numpy as np
 
@@ -20,15 +22,15 @@ class DBHandler:
             debug: bool = True,
             verbose: bool = False,
             parts: list = None,
-            db_path: str = None):
+            db_path: Path = None):
         if parts is None:
             parts = [0]
 
         if db_path is None:
-            self.con = duckdb.connect(database=':memory:', read_only=True)
+            self.con = duckdb.connect(database=':memory:')
             load_dresden_db(self.con, parts=parts)
         else:
-            self.con = duckdb.connect(database=db_path, read_only=True)
+            self.con = duckdb.connect(database=str(db_path), read_only=True)
         self.debug = debug
         self.verbose = verbose
 

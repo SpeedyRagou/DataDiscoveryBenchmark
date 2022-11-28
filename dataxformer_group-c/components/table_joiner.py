@@ -4,7 +4,6 @@ import duckdb
 from db_handler import DBHandler
 
 from table_filter import TableFilter
-from util import get_answers
 
 
 class TableJoiner:
