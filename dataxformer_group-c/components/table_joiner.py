@@ -186,6 +186,8 @@ class TableJoiner:
                         joined_examples_table = duckdb.query(query).to_df()
 
                         if len(joined_examples_table) > self.tau:
+
+                            # retrieve joined table with only x and y values
                             x_ids_selection = ""
                             for x_id in x_ids:
                                 x_ids_selection += f"table_z.\"{x_id}\", "
@@ -196,15 +198,27 @@ class TableJoiner:
 
                             important_columns_table = duckdb.query(query).to_df()
 
-                            # TODO implement table id + dict, output
-                            series = [self.__cur_table_id] + [i for i in range(len(important_columns_table.columns))]
+                            on_clause = ""
+                            for ex_col, x_id in zip(x_values.columns, important_columns_table.columns[:len(important_columns_table) - 1]):
+                                on_clause += f"x_values.\"{ex_col}\" = important_columns_table.\"{x_id}\" AND "
+                            on_clause = on_clause[:-4]
+
+                            # filter table for only rows with interesting x_values to reduce ram load
+                            query = f"SELECT important_columns_table.* " \
+                                    f"FROM important_columns_table JOIN x_values " \
+                                    f"ON ({on_clause});"
+
+                            row_filtered_table = duckdb.query(query).to_df()
+
+                            # build unique identification for new joined table and store table for retrieval
+                            series = [self.__cur_table_id] + [i for i in range(len(row_filtered_table.columns))]
 
                             if self.verbose:
-                                print(f"Added:\n{series}\n for \n{important_columns_table}")
+                                print(f"Added:\n{series}\n for \n{row_filtered_table}")
 
                             series = tuple(series)
                             tables += [series]
-                            self.table_dict[series] = important_columns_table
+                            self.table_dict[series] = row_filtered_table
 
                             self.__cur_table_id -= 1
 
