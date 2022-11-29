@@ -133,7 +133,7 @@ if __name__ == '__main__':
     path_to_examples = Path("./Examples/benchmark/CountryToLanguage.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
-    dataxformer = DataXFormer(verbose=True, use_table_joiner=True)
+    dataxformer = DataXFormer(verbose=True, use_table_joiner=True, db_file_path=Path("/home/groupc/gittables_DXF_all.duckdb").resolve())
     transformed_dataframe = dataxformer.run(frame)
 
     # TODO save result csv file

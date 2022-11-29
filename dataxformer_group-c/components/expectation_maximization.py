@@ -99,6 +99,8 @@ class ExpectationMaximization:
         finishedQuerying = False
         delta_score = 0
 
+        seen_tables = pd.DataFrame()
+
         indirect_tables_dict = None
 
         for index, row in examples.iterrows():
@@ -121,7 +123,7 @@ class ExpectationMaximization:
                 # get indirect Transformation candidates
                 if self.use_table_joiner:
                     # TODO call table joiner component
-                    indirect_tables, indirect_tables_dict = self.table_joiner.execute(examples, answers)
+                    indirect_tables, indirect_tables_dict = self.table_joiner.execute(answers, tables)
                     indirect_tables = pd.DataFrame(indirect_tables)
 
                     tables = pd.concat([tables, indirect_tables], axis=0, ignore_index=True)

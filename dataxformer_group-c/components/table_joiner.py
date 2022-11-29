@@ -65,7 +65,7 @@ class TableJoiner:
 
         path = 1
 
-        while abs(path) > self.max_length or False:  # TODO: Implement second condition!
+        while abs(path) < self.max_length or False:  # TODO: Implement second condition!
             if self.verbose:
                 print(f"############# Starting TableJoiner (Path={path}) ###############\n")
 
@@ -106,11 +106,10 @@ class TableJoiner:
         t_x = self.__db_handler.query_for_tables(x_values, self.tau)
 
         # Exclude tables that provide direct transformations of the examples:
-        # TODO update seen tables
-        t_x = t_x.merge(self.__seen_tables, how='outer', indicator=True).loc[
-            lambda x: x['_merge'] == 'left_only']
-        t_x = t_x.iloc[:, :-1]  # Delete '_merge'-column
-        x_ids = t_x.iloc[:, :-1]
+        t_x = t_x.merge(self.__seen_tables, how='left', indicator=True).loc[
+            lambda x: x['_merge'] == 'left_only'].iloc[:, :-2]
+
+        self.__seen_tables = pd.concat([self.__seen_tables, t_x], axis=0, ignore_index=True)
 
         tables = []
         current_table_paths = []
@@ -122,6 +121,8 @@ class TableJoiner:
             # t_z = [table_id, col1_id, col2_id]
             # fetch tables that contain x values for path = 1 or z values for path > 1
             table_z = self.__db_handler.fetch_table(t_z[0])
+            x_ids = t_z[1:]
+
 
             # for path > 1 join table of previous iteration on new table found for z
             if joinable_table is not None:
@@ -135,32 +136,44 @@ class TableJoiner:
                 )
 
             # Extract columns for Join by checking FD:
-            columns = self.find_join_columns(table_z, t_z[1:])
+            columns = self.find_join_columns(table_z, list(t_z[1:]))
 
             for z_i in columns:
                 # fetch tables that can be joined on x (path = 1) or z (path > 1) and contain y
                 # next part requires only tables that contain y,
                 # we are not interested in other tables
-                joinable_tables = self.__db_handler.fetch_candidates(
-                    pd.DataFrame({'x': table_z[z_i], 'y': y_values}),
-                    tau=self.tau
-                )
+                try:
+                    joinable_tables = self.__db_handler.fetch_candidates(
+                        pd.DataFrame({'x': table_z[z_i], 'y': y_values}),
+                        tau=self.tau
+                    )
+                except:
+                    if self.verbose:
+                        print("Catched an error with z-values:")
+                        print(table_z[z_i])
+                        continue
 
                 if len(joinable_tables) > 0:
                     for _, t_j in joinable_tables.iterrows():
                         # join current table with fetched join candidate table containing y
                         table_j = self.__db_handler.fetch_table(t_j[0])
                         z_j_id, z_y_id = t_j[1], t_j[2]
-
+        
                         query = f"SELECT * " \
                                 f"FROM table_z JOIN table_j " \
-                                f"ON (table_z.\"{table_z.columns[z_i]}\" = table_j.\"{table_z.columns[z_j_id]}\")"
-
-                        joined_table = duckdb.query(query).to_df()
+                                f"ON (table_z.\"{table_z.columns[z_i]}\" = table_j.\"{table_j.columns[z_j_id]}\")"
+                        try:
+                            joined_table = duckdb.query(query).to_df()
+                        except:
+                            if self.verbose:
+                                print("Catched an error:\n")
+                                print(table_j)
+                                print(table_z)
+                                continue
 
                         on_clause = ""
-                        for ex_col, x_id in zip(range(len(x_values.columns)), x_ids):
-                            on_clause += f"x_values.\"{ex_col}\" = table_z.\"{x_id}\" AND "
+                        for ex_col, x_id in zip(x_values.columns, x_ids):
+                            on_clause += f"x_values.\"{ex_col}\" = joined_table.\"{x_id}\" AND "
                         on_clause = on_clause[:-4]
 
                         # check if joined table contains at least tau examples
@@ -177,9 +190,9 @@ class TableJoiner:
                             for x_id in x_ids:
                                 x_ids_selection += f"table_z.\"{x_id}\", "
 
-                            query = f"SELECT {x_ids_selection} table_j.\"{table_z.columns[z_y_id]}\" " \
+                            query = f"SELECT {x_ids_selection} table_j.\"{table_j.columns[z_y_id]}\" " \
                                     f"FROM table_z JOIN table_j " \
-                                    f"ON (table_z.\"{table_z.columns[z_i]}\" = table_j.\"{table_z.columns[z_j_id]}\")"
+                                    f"ON (table_z.\"{table_z.columns[z_i]}\" = table_j.\"{table_j.columns[z_j_id]}\")"
 
                             important_columns_table = duckdb.query(query).to_df()
 
@@ -223,7 +236,6 @@ class TableJoiner:
             for z in range(len(table.columns)):
                 if z in x_col_ids:
                     continue
-
                 sub_table = table.iloc[:, x_col_ids + [z]]
                 if TableFilter.check_fd(sub_table):
                     columns += [z]

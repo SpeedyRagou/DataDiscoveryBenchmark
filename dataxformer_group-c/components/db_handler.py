@@ -46,7 +46,7 @@ class DBHandler:
 
         # subquery for x columns and y column
         for x in range(0, x_cols):
-            joint_list = "','".join(set(examples[x]))
+            joint_list = "','".join(set(examples.astype(str)[x]))
 
             query += f"\n   (SELECT TableId, ColumnId " \
                      f"\n   FROM AllTables " \
@@ -54,7 +54,7 @@ class DBHandler:
                      f"\n   GROUP BY TableId, ColumnId " \
                      f"\n   HAVING COUNT(DISTINCT CellValue) >= {tau}) AS colX{x + 1},\n"
 
-        joint_list = "','".join(set(examples[x_cols]))
+        joint_list = "','".join(set(examples.astype(str)[x_cols]))
         query += f"\n   (SELECT TableId, ColumnId " \
                  f"\n   FROM AllTables " \
                  f"\n   WHERE CellValue IN ('{joint_list}') " \
@@ -121,9 +121,9 @@ class DBHandler:
 
         table = pd.DataFrame()
         for col_id, column_content in table_content.groupby(['ColumnId']):
-            table[col_id] = list(column_content['CellValue'])
+            table[int(col_id)] = list(column_content['CellValue'])
 
-        return table.astype(int)
+        return table
 
     def fetch_table_columns(self, row: pd.Series) -> pd.DataFrame:
         table_id = row[0]
