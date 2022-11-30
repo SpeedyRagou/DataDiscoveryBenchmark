@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import time
 
 from .db_handler import DBHandler
 from .table_filter import TableFilter
@@ -110,6 +111,9 @@ class ExpectationMaximization:
 
         while not finishedQuerying or delta_score > self.delta_epsilon:
 
+            # get the start time
+            start_time = time.time()
+
             if self.verbose:
                 print(f"######## Iteration {iteration} ########", '\n')
                 iteration += 1
@@ -117,8 +121,15 @@ class ExpectationMaximization:
             new_value = False
             if not finishedQuerying:
 
+                # get the start time for fetching candidates
+                start_time_2 = time.time()
+
                 # get direct Transformation candidate
                 tables = self.dbHandler.fetch_candidates(answers, tau=self.tau)
+
+                # get the execution time
+                elapsed_time_2 = time.time() - start_time_2
+                print('Fetch candidates time:', elapsed_time_2, 's')
 
                 # get indirect Transformation candidates
                 if self.use_table_joiner:
@@ -147,6 +158,9 @@ class ExpectationMaximization:
                         rows = indirect_tables_dict[tuple(table)]
                     else:
                         rows = self.dbHandler.fetch_table_columns(table)
+
+                    # Clean rows dataframe by dropping None/'None'/'none' values
+                    rows = rows.mask(rows.eq('None') | rows.eq('none')).dropna()
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
                     if not self.table_filter.filter(examples, rows, self.tau):
@@ -232,6 +246,11 @@ class ExpectationMaximization:
                     delta_score += abs(self.__answer_scores[key] - old_a[key])
                 else:
                     delta_score += abs(self.__answer_scores[key])
+
+        # get the end and execution time
+        end_time = time.time()
+        elapsed_time = end_time - start_time
+        print('Iteration time:', elapsed_time, 's')
 
         if True:
             print(self.__table_scores)

@@ -1,6 +1,7 @@
 from pathlib import Path
 
 import pandas as pd
+import time
 from components.expectation_maximization import ExpectationMaximization
 
 
@@ -130,6 +131,8 @@ class DataXFormer:
 
 
 if __name__ == '__main__':
+    start_time = time.time()                # get the start time
+
     path_to_examples = Path("./Examples/benchmark/CountryToLanguage.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
@@ -137,3 +140,7 @@ if __name__ == '__main__':
     transformed_dataframe = dataxformer.run(frame)
 
     # TODO save result csv file
+
+    end_time = time.time()                  # get the end time
+    elapsed_time = end_time - start_time    # get the execution time
+    print('Total execution time:', elapsed_time, 's')
