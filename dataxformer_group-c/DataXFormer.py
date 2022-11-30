@@ -88,8 +88,8 @@ class DataXFormer:
         inp = input_frame[input_frame[columns[-1]].isna()]
 
         # lower input for gittables
-        examples = examples.astype(str).applymap(str.lower)
-        inp = inp.astype(str).applymap(str.lower)
+        #examples = examples.astype(str).applymap(str.lower)
+        #inp = inp.astype(str).applymap(str.lower)
 
         # call modules (Right now only ExpectationMaximization)
         if self.verbose:
@@ -132,10 +132,10 @@ class DataXFormer:
 if __name__ == '__main__':
 
 
-    path_to_examples = Path("./Examples/benchmark/CountryToLanguage.csv").resolve()
+    path_to_examples = Path("./Examples/selfmade_input_tableid_70681.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
-    dataxformer = DataXFormer(verbose=True, use_table_joiner=False)
+    dataxformer = DataXFormer(verbose=True, use_table_joiner=True)
     transformed_dataframe = dataxformer.run(frame)
 
 

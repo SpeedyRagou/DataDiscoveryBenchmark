@@ -6,6 +6,9 @@ import numpy as np
 from datadiscoverybench.utils import load_dresden_db
 from typing import List
 import pandas as pd
+import warnings
+
+warnings.simplefilter(action='ignore', category=pd.errors.PerformanceWarning)
 
 
 class DBHandler:

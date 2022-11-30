@@ -32,7 +32,7 @@ class TableJoiner:
         self.__cur_table_id = -1
         self.table_dict = {}
 
-    def execute(self, examples: pd.DataFrame, t_e: pd.DataFrame) -> Tuple[List[Any], Dict[Any, Any]]:
+    def execute(self, examples: pd.DataFrame, query_values: pd.DataFrame, t_e: pd.DataFrame) -> Tuple[List[Any], Dict[Any, Any]]:
         """
         Joining Tables to find indirect transformations.
 
@@ -72,8 +72,9 @@ class TableJoiner:
             if path == 1:
                 new_tables, new_table_paths = self.__table_join_iteration(
                     path,
-                    examples.iloc[:, :-1],
-                    examples.iloc[:, -1]
+                    query_values.iloc[:, :-1],
+                    examples.iloc[:, -1],
+                    query_values.iloc[:len(examples.columns) - 1],
                 )
             else:
                 new_table_paths = []
@@ -86,12 +87,14 @@ class TableJoiner:
                         path,
                         t_z,
                         examples.iloc[:, -1],
+                        query_values.iloc[:len(examples.columns)-1],
                         joinable_table=joinable_table
                     )
                     new_table_paths += tmp_table_paths
 
             tables += new_tables
             current_table_paths = new_table_paths
+            path += 1
 
         return tables, self.table_dict
 
@@ -100,6 +103,7 @@ class TableJoiner:
             path: int,
             x_values: pd.DataFrame,
             y_values: pd.Series,
+            query_values: pd.DataFrame,
             joinable_table: Tuple[pd.Series, int] = None
     ):
         # Find all tables that contain the x values of the examples:
@@ -138,6 +142,9 @@ class TableJoiner:
             # Extract columns for Join by checking FD:
             columns = self.find_join_columns(table_z, list(t_z[1:]))
 
+            if self.verbose:
+                print(f"Possible Joinable Columns:\n{columns}")
+
             for z_i in columns:
                 # fetch tables that can be joined on x (path = 1) or z (path > 1) and contain y
                 # next part requires only tables that contain y,
@@ -147,6 +154,9 @@ class TableJoiner:
                         pd.DataFrame({'x': table_z[z_i], 'y': y_values}),
                         tau=self.tau
                     )
+                    if self.verbose:
+                        print(f"\nFound possible Tables to Join:\n{joinable_tables}\n")
+
                 except:
                     if self.verbose:
                         print("Catched an error with z-values:")
@@ -200,12 +210,12 @@ class TableJoiner:
 
                             on_clause = ""
                             for ex_col, x_id in zip(x_values.columns, important_columns_table.columns[:len(important_columns_table) - 1]):
-                                on_clause += f"x_values.\"{ex_col}\" = important_columns_table.\"{x_id}\" AND "
+                                on_clause += f"query_values.\"{ex_col}\" = important_columns_table.\"{x_id}\" AND "
                             on_clause = on_clause[:-4]
 
                             # filter table for only rows with interesting x_values to reduce ram load
                             query = f"SELECT important_columns_table.* " \
-                                    f"FROM important_columns_table JOIN x_values " \
+                                    f"FROM important_columns_table JOIN query_values " \
                                     f"ON ({on_clause});"
 
                             row_filtered_table = duckdb.query(query).to_df()
@@ -214,6 +224,7 @@ class TableJoiner:
                             series = [self.__cur_table_id] + [i for i in range(len(row_filtered_table.columns))]
 
                             if self.verbose:
+                                print()
                                 print(f"Added:\n{series}\n for \n{row_filtered_table}")
 
                             series = tuple(series)
