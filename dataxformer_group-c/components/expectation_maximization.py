@@ -100,7 +100,7 @@ class ExpectationMaximization:
         finishedQuerying = False
         delta_score = 0
 
-        seen_tables = pd.DataFrame()
+        seen_tables = None
 
         indirect_tables_dict = None
 
@@ -130,10 +130,17 @@ class ExpectationMaximization:
                 # get the execution time
                 elapsed_time_2 = time.time() - start_time_2
                 print('Fetch candidates time:', elapsed_time_2, 's')
+                if seen_tables == None:
+                    seen_tables = tables
+                else:
+
+                    tables = tables.merge(seen_tables, how='left', indicator=True).loc[
+                                 lambda x: x['_merge'] == 'left_only'].iloc[:, :-2]
+                    seen_tables = pd.concat([seen_tables, tables], axis=0, ignore_index=True)
 
                 # get indirect Transformation candidates
                 if self.use_table_joiner:
-                    # TODO call table joiner component
+
                     indirect_tables, indirect_tables_dict = self.table_joiner.execute(answers, inp, tables)
                     indirect_tables = pd.DataFrame(indirect_tables)
 
@@ -164,8 +171,8 @@ class ExpectationMaximization:
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
                     if not self.table_filter.filter(examples, rows, self.tau):
-                        if self.verbose:
-                            print(f"Filtered table {table_id}")
+                        #if self.verbose:
+                        #    print(f"Filtered table {table_id}")
                         continue
 
                     input_columns = list(inp.columns)
