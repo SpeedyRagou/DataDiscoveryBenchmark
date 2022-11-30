@@ -81,15 +81,11 @@ class DataXFormer:
         :return: Returns a pandas DataFrame that contains the examples, transformed query values and query values where
         no transformation was found
         """
-
+        start_time = time.time()  # get the start time
         # split input into examples and query values
         columns = input_frame.columns
         examples = input_frame.dropna(axis=0, how='any', inplace=False)
         inp = input_frame[input_frame[columns[-1]].isna()]
-
-        # tokenize input csv
-        # examples = examples.applymap(get_cleaned_text)
-        # inp = inp.applymap(get_cleaned_text)
 
         # lower input for gittables
         examples = examples.astype(str).applymap(str.lower)
@@ -116,31 +112,31 @@ class DataXFormer:
         x_columns = list(result.columns[:-2])
         idx = result.groupby(x_columns)[result.columns[-1]].transform(max) == result[result.columns[-1]]
 
-        print(idx)
-        # TODO join input and results on x columns
-        print(pd.merge(inp, result[idx]))
 
-        print()
-        print("---------------------------------------------")
-        print("Final result")
-        print("---------------------------------------------")
-        print(result[idx])
-        print("---------------------------------------------")
+        end_time = time.time()  # get the end time
+        elapsed_time = end_time - start_time  # get the execution time
+
+        if self.verbose:
+            print("---------------------------------------------")
+            print('Total execution time:', elapsed_time, 's')
+            print()
+            print("---------------------------------------------")
+            print("Final result")
+            print("---------------------------------------------")
+            print(result[idx])
+            print("---------------------------------------------")
 
         return result[idx]
 
 
 if __name__ == '__main__':
-    start_time = time.time()                # get the start time
+
 
     path_to_examples = Path("./Examples/benchmark/CountryToLanguage.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
-    dataxformer = DataXFormer(verbose=True, use_table_joiner=True, db_file_path=Path("/home/groupc/gittables_DXF_all.duckdb").resolve())
+    dataxformer = DataXFormer(verbose=True, use_table_joiner=False)
     transformed_dataframe = dataxformer.run(frame)
 
-    # TODO save result csv file
 
-    end_time = time.time()                  # get the end time
-    elapsed_time = end_time - start_time    # get the execution time
-    print('Total execution time:', elapsed_time, 's')
+
