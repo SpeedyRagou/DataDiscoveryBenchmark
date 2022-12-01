@@ -48,6 +48,7 @@ dataxformer = DataXFormer(verbose=True, use_table_joiner=False)
 transformed_dataframe = dataxformer.run(frame)
 ```
 
+**It is important to tokenize the database and the input before using DataXFormer to greatly increase its performance!**
 ## Parameters
 The DataXFormer has multiple options that can used:
 
