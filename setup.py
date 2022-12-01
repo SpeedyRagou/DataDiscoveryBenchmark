@@ -25,7 +25,7 @@ setup(
                       "pyarrow",
                       "autogluon"
                       ],
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs'), include=('datadiscoverybench', 'dataxformer_groupc'))
 )
 
 
