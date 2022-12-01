@@ -13,4 +13,5 @@ if __name__ == '__main__':
         print(f"\nParquet Package {i}\n")
 
         dataxformer = DataXFormer(parts=parquets[i].tolist())
-        dataxformer.run(path_to_examples)
+        frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
+        dataxformer.run(frame)
