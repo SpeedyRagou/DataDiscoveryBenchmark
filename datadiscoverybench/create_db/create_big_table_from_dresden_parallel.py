@@ -48,7 +48,8 @@ def zip2parquet(zip_path, my_path=None, table_num_dict=None):
             #todo fix table header situation
             for row_id in range(len(json_data['relation'])):
                 for column_id in range(len(json_data['relation'][0])):
-                    cell_values.append(str(json_data['relation'][row_id][column_id]))
+                    #cell_values.append(str(json_data['relation'][row_id][column_id]))
+                    cell_values.append(str(json_data['relation'][row_id][column_id]).lower())
                     table_ids.append(current_pointer)
                     column_ids.append(column_id)
                     row_ids.append(row_id)

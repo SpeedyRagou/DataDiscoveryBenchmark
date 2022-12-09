@@ -167,7 +167,7 @@ class ExpectationMaximization:
                         rows = self.dbHandler.fetch_table_columns(table)
 
                     # Clean rows dataframe by dropping None/'None'/'none' values
-                    rows = rows.mask(rows.eq('None') | rows.eq('none')).dropna()
+                    #srows = rows.mask(rows.eq('None') | rows.eq('none')).dropna()
 
                     # filter out tables where col-row alignment does not match or functional dependency does not hold
                     if not self.table_filter.filter(examples, rows, self.tau):

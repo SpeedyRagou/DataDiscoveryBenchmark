@@ -33,7 +33,8 @@ def zip2parquet(zip_path, my_path=None):
                     values = df.values
                     for row_id in range(values.shape[0]):
                         for column_id in range(values.shape[1]):
-                            cell_values.append(str(values[row_id, column_id]))
+                            # cell_values.append(str(values[row_id, column_id]))
+                            cell_values.append(str(values[row_id, column_id]).lower())
                             table_ids.append(table_name)
                             column_ids.append(column_id)
                             row_ids.append(row_id)
