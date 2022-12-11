@@ -3,7 +3,7 @@ from os.path import isfile, join
 from pathlib import Path
 
 import pandas as pd
-from sklearn.metrics import f1_score
+# from sklearn.metrics import f1_score
 from DataXFormer import DataXFormer
 
 
