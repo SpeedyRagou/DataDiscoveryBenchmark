@@ -132,7 +132,7 @@ class DataXFormer:
 if __name__ == '__main__':
 
 
-    path_to_examples = Path("./Examples/benchmark/AsciiToUnicode.csv").resolve()
+    path_to_examples = Path("data/benchmark/AirportcodeToCity_examples.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
     dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=True)

@@ -28,18 +28,18 @@ def create_examples_csv(path):
 
     # Cap the size of the csv to 20 rows and save
     df = df.head(20)
-    df.to_csv("./Examples/benchmark/{0}.csv".format(filename), index=False)
+    df.to_csv("./data/benchmark/{0}.csv".format(filename), index=False)
 
     # Keep the first 5 transformations as examples and delete the y-values of the rest
     df.iloc[:, -1] = df.iloc[:5, -1]
-    df.to_csv("./Examples/examples/{0}.csv".format(filename), index=False)
+    df.to_csv("./data/examples/{0}.csv".format(filename), index=False)
 
     return df
 
 
 if __name__ == "__main__":
 
-    path_benchmark = "./Examples/benchmark/"
+    path_benchmark = "data/benchmark/"
 
     files = [f for f in listdir(path_benchmark) if isfile(join(path_benchmark, f))]
 
