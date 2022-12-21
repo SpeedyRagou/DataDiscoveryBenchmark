@@ -70,6 +70,8 @@ class TableFilter:
             Returns whether column-row alignment is correct and functional dependency holds.
         """
         if len(examples.columns) != len(table.columns):
+            print(examples.columns)
+            print(table.columns)
             raise ValueError("Table does not have the same amount of columns as examples.")
 
         table_passes = False
