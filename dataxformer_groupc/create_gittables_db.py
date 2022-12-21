@@ -103,4 +103,9 @@ if __name__ == '__main__':
 
     db_path = Path("/home/groupc/gittables.duckdb").resolve()
     con = duckdb.connect(database=str(db_path))
-    load_git_tables_db(con, parts=git_parts)
+    for part in git_parts:
+        try:
+            load_git_tables_db(con, parts=[part])
+        except Exception as e:
+            print(f"Error in part <{part}>")
+            print(e)
