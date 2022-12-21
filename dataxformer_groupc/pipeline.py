@@ -49,7 +49,8 @@ if __name__ == "__main__":
         p = Path(path_benchmark + f).resolve()
         df = create_examples_csv(p)
 
-        dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=True)
+        dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=False,
+                                  db_file_path=Path("/home/groupc/gittables_DXF_all.duckdb"))
         transformed_df = dataxformer.run(df)
 
         # DataXFormer has to return all examples and query values for the following to work
