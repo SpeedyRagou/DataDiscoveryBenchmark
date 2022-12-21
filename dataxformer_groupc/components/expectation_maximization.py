@@ -136,7 +136,7 @@ class ExpectationMaximization:
                     print("####### Candidates before #######")
                     print(tables)
                     tables = tables.merge(seen_tables, how='left', indicator=True).loc[
-                                 lambda x: x['_merge'] == 'left_only'].iloc[:, :-2]
+                                 lambda x: x['_merge'] == 'left_only'].iloc[:, :-1]
                     seen_tables = pd.concat([seen_tables, tables], axis=0, ignore_index=True)
                     print("####### Candidates after #######")
                     print(tables)
