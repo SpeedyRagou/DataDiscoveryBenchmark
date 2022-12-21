@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import duckdb
 import pandas as pd
 import time
 from components.expectation_maximization import ExpectationMaximization
@@ -111,7 +112,21 @@ class DataXFormer:
 
         x_columns = list(result.columns[:-2])
         idx = result.groupby(x_columns)[result.columns[-1]].transform(max) == result[result.columns[-1]]
+        result = result[idx]
 
+        selection = ""
+        on_clause = ""
+        for x1, x2 in zip(input_frame.columns[:-1], result.columns[:-2]):
+            selection += f"input_frame.\"{x1}\", "
+            on_clause += f"{x1} = {x2} AND "
+        selection += f"result.\"{result.columns[-2]}\" "
+        on_clause = on_clause[:-5]
+
+        query = f"SELECT * " \
+                f"FROM input_frame LEFT OUTER JOIN result " \
+                f"ON ({on_clause}) "
+
+        joined_result = duckdb.query(query).to_df()
 
         end_time = time.time()  # get the end time
         elapsed_time = end_time - start_time  # get the execution time
@@ -123,16 +138,19 @@ class DataXFormer:
             print("---------------------------------------------")
             print("Final result")
             print("---------------------------------------------")
-            print(result[idx])
+            print(result)
+            print("---------------------------------------------")
+            print("---------------------------------------------")
+            print("Joined result")
+            print("---------------------------------------------")
+            print(joined_result)
             print("---------------------------------------------")
 
-        return result[idx]
+        return result
 
 
 if __name__ == '__main__':
-
-
-    path_to_examples = Path("data/benchmark/AirportcodeToCity_examples.csv").resolve()
+    path_to_examples = Path("./data/benchmark/Movie2year.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
     dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=True)
