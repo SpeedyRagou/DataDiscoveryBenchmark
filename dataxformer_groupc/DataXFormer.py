@@ -118,7 +118,7 @@ class DataXFormer:
         on_clause = ""
         for x1, x2 in zip(input_frame.columns[:-1], result.columns[:-2]):
             selection += f"input_frame.\"{x1}\", "
-            on_clause += f"{x1} = {x2} AND "
+            on_clause += f"input_frame.\"{x1}\" = result.\"{x2}\" AND "
         selection += f"result.\"{result.columns[-2]}\" "
         on_clause = on_clause[:-5]
 
