@@ -130,7 +130,7 @@ class ExpectationMaximization:
                 # get the execution time
                 elapsed_time_2 = time.time() - start_time_2
                 print('Fetch candidates time:', elapsed_time_2, 's')
-                if seen_tables == None:
+                if seen_tables is None:
                     seen_tables = tables
                 else:
 
