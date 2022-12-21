@@ -123,7 +123,7 @@ class DataXFormer:
         selection += f"result.\"{result.columns[-2]}\" "
         on_clause = on_clause[:-5]
 
-        query = f"SELECT * " \
+        query = f"SELECT {selection} " \
                 f"FROM input_frame LEFT OUTER JOIN result " \
                 f"ON ({on_clause}) "
 
