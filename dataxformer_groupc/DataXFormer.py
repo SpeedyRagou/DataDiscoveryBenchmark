@@ -89,8 +89,9 @@ class DataXFormer:
         inp = input_frame[input_frame[columns[-1]].isna()]
 
         # lower input for gittables
-        #examples = examples.astype(str).applymap(str.lower)
-        #inp = inp.astype(str).applymap(str.lower)
+        examples = examples.astype(str).applymap(str.lower)
+        inp = inp.astype(str).applymap(str.lower)
+        input_frame = input_frame.astype(str).applymap(str.lower)
 
         # call modules (Right now only ExpectationMaximization)
         if self.verbose:
@@ -122,7 +123,7 @@ class DataXFormer:
         selection += f"result.\"{result.columns[-2]}\" "
         on_clause = on_clause[:-5]
 
-        query = f"SELECT {selection} " \
+        query = f"SELECT * " \
                 f"FROM input_frame LEFT OUTER JOIN result " \
                 f"ON ({on_clause}) "
 
@@ -136,24 +137,26 @@ class DataXFormer:
             print('Total execution time:', elapsed_time, 's')
             print()
             print("---------------------------------------------")
-            print("Final result")
+            print("Selected answers and scores")
             print("---------------------------------------------")
             print(result)
             print("---------------------------------------------")
+            print()
             print("---------------------------------------------")
             print("Joined result")
             print("---------------------------------------------")
             print(joined_result)
             print("---------------------------------------------")
 
-        return result
+        return joined_result
 
 
 if __name__ == '__main__':
     path_to_examples = Path("./data/benchmark/Movie2year.csv").resolve()
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
-    dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=True)
+    dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=False,
+                              db_file_path=Path("/home/groupc/gittables_DXF_all.duckdb"))
     transformed_dataframe = dataxformer.run(frame)
 
 
