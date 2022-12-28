@@ -63,6 +63,8 @@ if __name__ == "__main__":
                                transformed_df.iloc[:, -1].astype(str).to_numpy(),
                                average=None, zero_division=0)
 
+        # TODO: Create logs
+
     prec /= len(files)
     recall /= len(files)
     print("Average Precision:", prec)
