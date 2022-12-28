@@ -3,7 +3,7 @@ from os.path import isfile, join
 from pathlib import Path
 
 import pandas as pd
-from sklearn.metrics import precision_score, recall_score
+from sklearn.metrics import f1_score
 from DataXFormer import DataXFormer
 
 
@@ -24,48 +24,56 @@ def create_examples_csv(path):
     # Resolve path, store filename, create dataframe
     path_resolved = Path(path).resolve()
     filename = Path(path_resolved).stem
-    benchmark_df = pd.read_csv(path_resolved, dtype=str, encoding="ISO-8859-1")
+    df = pd.read_csv(path_resolved, dtype=str, encoding="ISO-8859-1")
+    df = df.astype(str).applymap(str.lower)
 
     # Cap the size of the csv to 20 rows and save
-    benchmark_df = benchmark_df.head(20)
-    benchmark_df.to_csv("./data/benchmark/{0}.csv".format(filename), index=False)
+    df = df.head(20)
+    df.to_csv("./data/benchmark/{0}.csv".format(filename), index=False)
+
+    ground_truth = df.copy(deep=True)
 
     # Keep the first 5 transformations as examples and delete the y-values of the rest
-    examples_df = benchmark_df.copy(deep=True)
-    examples_df.iloc[:, -1] = examples_df.iloc[:5, -1]
-    examples_df.to_csv("./data/examples/{0}.csv".format(filename), index=False)
+    df.iloc[:, -1] = df.iloc[:5, -1]
+    df.to_csv("./data/examples/{0}.csv".format(filename), index=False)
 
-    return benchmark_df, examples_df
+    return df, ground_truth
 
 
 if __name__ == "__main__":
 
     path_benchmark = "data/benchmark/"
+    path_results = "data/results/"
 
     files = [f for f in listdir(path_benchmark) if isfile(join(path_benchmark, f))]
 
-    prec = 0
-    recall = 0
+    db_files = [Path("/home/groupc/gittables.duckdb"), Path("/home/groupc/dwtc.duckdb")]
+    f1 = 0
 
-    for f in files:
-        p = Path(path_benchmark + f).resolve()
-        benchmark_df, examples_df = create_examples_csv(p)
+    f1_dataframe = pd.DataFrame(columns=["File", "F1-Score", "Time", "Average Iteration Time"])
+    print(f1_dataframe)
+    for db_file in db_files:
+        for f in files:
+            p = Path(path_benchmark + f).resolve()
+            df, ground_truth = create_examples_csv(p)
 
-        dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=False)#,
-                                  #db_file_path=Path("/home/groupc/gittables_DXF_all.duckdb"))
-        transformed_df = dataxformer.run(examples_df)
+            dataxformer = DataXFormer(verbose=False, use_table_joiner=False, debug=False,
+                                      db_file_path=db_file)
+            transformed_df = dataxformer.run(df)
 
-        # Precision and Recall
-        prec += precision_score(benchmark_df.iloc[:, -1].astype(str).to_numpy(),
-                                transformed_df.iloc[:, -1].astype(str).to_numpy(),
-                                average=None, zero_division=0)
-        recall += recall_score(benchmark_df.iloc[:, -1].astype(str).to_numpy(),
-                               transformed_df.iloc[:, -1].astype(str).to_numpy(),
-                               average=None, zero_division=0)
+            stem = Path(path_results + f).resolve().stem
+            transformed_df.to_csv(Path(f"{path_results}{stem}_{db_file.stem}_result.csv"), index=False)
 
-        # TODO: Create logs
+            # DataXFormer has to return all examples and query values for the following to work
 
-    prec /= len(files)
-    recall /= len(files)
-    print("Average Precision:", prec)
-    print("Average Recall:", recall)
+            f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy(), transformed_df.iloc[:, -2].to_numpy(), average='micro')
+            f1 += f1_file
+
+            f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times)]
+            # Until then ...
+            # f1 += 0.85
+            print(f1_dataframe)
+        f1 /= len(files)
+        print(f"Average F1-Score for {db_file.stem}:", f1)
+
+        f1_dataframe.to_csv(Path(f"data/f1_results_{db_file.stem}.csv"), index=False)
