@@ -67,7 +67,7 @@ class ExpectationMaximization:
         self.table_filter = TableFilter()
         self.table_joiner = TableJoiner(db_handler=self.dbHandler, max_length=self.max_path, tau=self.tau, verbose=self.verbose, debug=self.debug)
 
-
+        self.elapsed_iteration_time = []
 
         self.__inp = None
 
@@ -256,6 +256,7 @@ class ExpectationMaximization:
         # get the end and execution time
         end_time = time.time()
         elapsed_time = end_time - start_time
+        self.elapsed_iteration_time.append(elapsed_time)
         print('Iteration time:', elapsed_time, 's')
 
         if True:

@@ -65,6 +65,8 @@ class DataXFormer:
         self.use_table_joiner = use_table_joiner
         self.verbose = verbose
         self.debug = debug
+        self.elapsed_time = 0
+        self.elapsed_iteration_times = []
 
     def run(self, input_frame: pd.DataFrame) -> pd.DataFrame:
         """
@@ -89,9 +91,9 @@ class DataXFormer:
         inp = input_frame[input_frame[columns[-1]].isna()]
 
         # lower input for gittables
-        examples = examples.astype(str).applymap(str.lower)
-        inp = inp.astype(str).applymap(str.lower)
-        input_frame = input_frame.astype(str).applymap(str.lower)
+        # examples = examples.astype(str).applymap(str.lower)
+        # inp = inp.astype(str).applymap(str.lower)
+        # input_frame = input_frame.astype(str).applymap(str.lower)
 
         # call modules (Right now only ExpectationMaximization)
         if self.verbose:
@@ -130,11 +132,12 @@ class DataXFormer:
         joined_result = duckdb.query(query).to_df()
 
         end_time = time.time()  # get the end time
-        elapsed_time = end_time - start_time  # get the execution time
+        self.elapsed_time = end_time - start_time  # get the execution time
+        self.elapsed_iteration_times = mainLoop.elapsed_iteration_time
 
         if self.verbose:
             print("---------------------------------------------")
-            print('Total execution time:', elapsed_time, 's')
+            print('Total execution time:', self.elapsed_time, 's')
             print()
             print("---------------------------------------------")
             print("Selected answers and scores")
