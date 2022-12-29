@@ -119,7 +119,7 @@ class DBHandler:
         """
         table_content = self.con.execute(f"SELECT CellValue, ColumnId "
                                          f"FROM AllTables "
-                                         f"WHERE TableId = {table_id} "
+                                         f"WHERE TableId = '{table_id}' "
                                          f"ORDER BY ColumnId, RowId ").fetch_df()
 
         table = pd.DataFrame()
@@ -134,7 +134,7 @@ class DBHandler:
 
         table_content = self.con.execute(f"SELECT CellValue, ColumnId "
                                          f"FROM AllTables "
-                                         f"WHERE TableId = {table_id} "
+                                         f"WHERE TableId = '{table_id}' "
                                          f"AND ColumnID IN ({str(columns_ids)[1:-1]})"
                                          f"ORDER BY ColumnId, RowId ").fetch_df()
 
@@ -150,7 +150,7 @@ class DBHandler:
     def fetch_tables(self, table_ids: List[int]):
         table_content = self.con.execute(f"SELECT CellValue, ColumnId "
                                          f"FROM AllTables "
-                                         f"WHERE TableId IN ({table_ids}) "
+                                         f"WHERE TableId IN ('{table_ids}') "
                                          f"ORDER BY ColumnId, RowId ").fetch_df()
         # TODO implement
         raise NotImplementedError
