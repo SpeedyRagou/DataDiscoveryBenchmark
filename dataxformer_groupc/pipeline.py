@@ -47,13 +47,16 @@ if __name__ == "__main__":
 
     files = [f for f in listdir(path_benchmark) if isfile(join(path_benchmark, f))]
 
-    db_files = [Path("/home/groupc/gittables.duckdb"), Path("/home/groupc/dwtc.duckdb")]
+    db_files = [Path("/home/groupc/gittables.duckdb")]
     f1 = 0
-
+    iteration = 1
+    max_iteration = len(db_files) * len(files)
     f1_dataframe = pd.DataFrame(columns=["File", "F1-Score", "Time", "Average Iteration Time"])
     print(f1_dataframe)
     for db_file in db_files:
         for f in files:
+            print(f"Experiment {iteration}/{max_iteration}")
+            iteration += 1
             p = Path(path_benchmark + f).resolve()
             df, ground_truth = create_examples_csv(p)
 
