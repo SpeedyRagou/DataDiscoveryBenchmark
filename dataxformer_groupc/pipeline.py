@@ -57,8 +57,11 @@ if __name__ == "__main__":
         for f in files:
             print(f"Experiment {iteration}/{max_iteration}")
             iteration += 1
-            p = Path(path_benchmark + f).resolve()
-            df, ground_truth = create_examples_csv(p)
+            try:
+                p = Path(path_benchmark + f).resolve()
+                df, ground_truth = create_examples_csv(p)
+            except:
+                continue
 
             dataxformer = DataXFormer(verbose=False, use_table_joiner=False, debug=False,
                                       db_file_path=db_file)
@@ -69,7 +72,7 @@ if __name__ == "__main__":
 
             # DataXFormer has to return all examples and query values for the following to work
 
-            f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy(), transformed_df.iloc[:, -2].to_numpy(), average='micro')
+            f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy(), transformed_df.iloc[:, -1].to_numpy(), average='micro')
             f1 += f1_file
 
             f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times)]
