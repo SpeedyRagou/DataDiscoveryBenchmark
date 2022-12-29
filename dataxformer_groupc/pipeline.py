@@ -64,20 +64,23 @@ if __name__ == "__main__":
                 dataxformer = DataXFormer(verbose=False, use_table_joiner=False, debug=False,
                                         db_file_path=db_file)
                 transformed_df = dataxformer.run(df)
+
+                stem = Path(path_results + f).resolve().stem
+                transformed_df.to_csv(Path(f"{path_results}{stem}_{db_file.stem}_result.csv"), index=False)
+
+                # DataXFormer has to return all examples and query values for the following to work
+
+                f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
+                f1 += f1_file
+
+                f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times)]
+                # Until then ...
+                # f1 += 0.85
+                print(f1_dataframe)
+
             except:
+                print("An error happend")
                 continue
-            stem = Path(path_results + f).resolve().stem
-            transformed_df.to_csv(Path(f"{path_results}{stem}_{db_file.stem}_result.csv"), index=False)
-
-            # DataXFormer has to return all examples and query values for the following to work
-
-            f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
-            f1 += f1_file
-
-            f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times)]
-            # Until then ...
-            # f1 += 0.85
-            print(f1_dataframe)
         f1 /= len(files)
         print(f"Average F1-Score for {db_file.stem}:", f1)
 
