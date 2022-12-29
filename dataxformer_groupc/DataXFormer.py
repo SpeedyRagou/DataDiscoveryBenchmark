@@ -159,7 +159,7 @@ if __name__ == '__main__':
     frame = pd.read_csv(path_to_examples, dtype=str, encoding="ISO-8859-1")
 
     dataxformer = DataXFormer(verbose=True, use_table_joiner=False, debug=False,
-                              db_file_path=Path("/home/groupc/gittables_DXF_all.duckdb"))
+                              db_file_path=Path("/home/groupc/gittables.duckdb"))
     transformed_dataframe = dataxformer.run(frame)
 
 
