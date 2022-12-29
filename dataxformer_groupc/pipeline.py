@@ -71,7 +71,8 @@ if __name__ == "__main__":
             transformed_df.to_csv(Path(f"{path_results}{stem}_{db_file.stem}_result.csv"), index=False)
 
             # DataXFormer has to return all examples and query values for the following to work
-
+            print(ground_truth.iloc[:, -1].to_numpy())
+            print(transformed_df.iloc[:, -1].to_numpy())
             f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy(), transformed_df.iloc[:, -1].to_numpy(), average='micro')
             f1 += f1_file
 
