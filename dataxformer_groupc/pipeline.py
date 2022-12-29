@@ -60,13 +60,12 @@ if __name__ == "__main__":
             try:
                 p = Path(path_benchmark + f).resolve()
                 df, ground_truth = create_examples_csv(p)
+
+                dataxformer = DataXFormer(verbose=False, use_table_joiner=False, debug=False,
+                                        db_file_path=db_file)
+                transformed_df = dataxformer.run(df)
             except:
                 continue
-
-            dataxformer = DataXFormer(verbose=False, use_table_joiner=False, debug=False,
-                                      db_file_path=db_file)
-            transformed_df = dataxformer.run(df)
-
             stem = Path(path_results + f).resolve().stem
             transformed_df.to_csv(Path(f"{path_results}{stem}_{db_file.stem}_result.csv"), index=False)
 
