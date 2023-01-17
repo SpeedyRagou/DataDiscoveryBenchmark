@@ -28,7 +28,7 @@ def create_examples_csv(path):
     df = df.astype(str).applymap(str.lower)
 
     # Cap the size of the csv to 20 rows and save
-    df = df.head(20)
+    #df = df.head(20)
     df.to_csv("./data/benchmark/{0}.csv".format(filename), index=False)
 
     ground_truth = df.copy(deep=True)
@@ -51,7 +51,7 @@ if __name__ == "__main__":
     f1 = 0
     iteration = 1
     max_iteration = len(db_files) * len(files)
-    f1_dataframe = pd.DataFrame(columns=["File", "F1-Score", "Time", "Average Iteration Time"])
+    f1_dataframe = pd.DataFrame(columns=["File", "F1-Score", "Time", "Average Iteration Time", "Iteration", "Found Answers"])
     print(f1_dataframe)
     for db_file in db_files:
         for f in files:
@@ -68,12 +68,14 @@ if __name__ == "__main__":
                 stem = Path(path_results + f).resolve().stem
                 transformed_df.to_csv(Path(f"{path_results}{stem}_{db_file.stem}_result.csv"), index=False)
 
+                input_length = df.dropna(axis=0, how='any', inplace=False).shape[0]
+                result_length = transformed_df.dropna(axis=0, how='any', inplace=False).shape[0]
                 # DataXFormer has to return all examples and query values for the following to work
 
                 f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
                 f1 += f1_file
 
-                f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times)]
+                f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times), len(dataxformer.elapsed_iteration_times), result_length - input_length]
                 # Until then ...
                 # f1 += 0.85
                 print(f1_dataframe)

@@ -253,6 +253,9 @@ class ExpectationMaximization:
                 else:
                     delta_score += abs(self.__answer_scores[key])
 
+            if self.verbose:
+                print(f"######## Delta ########", '\n', f"Delta Score: {delta_score}\n", f"Delta Epsilon: {self.delta_epsilon}")
+
         # get the end and execution time
         end_time = time.time()
         elapsed_time = end_time - start_time
