@@ -74,7 +74,7 @@ if __name__ == "__main__":
                 result_length = transformed_df.dropna(axis=0, how='any', inplace=False).shape[0]
                 # DataXFormer has to return all examples and query values for the following to work
 
-                precision_file, recall_file, f1_file, support = precision_recall_fscore_support(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
+                precision_file, recall_file, f1_file, support = precision_recall_fscore_support(ground_truth.iloc[:, -1].to_numpy().astype(str)[5:], transformed_df.iloc[:, -1].to_numpy().astype(str)[5:], average='micro')
 
                 f1 += f1_file
                 recall += recall_file
