@@ -55,7 +55,7 @@ if __name__ == "__main__":
     print(f1_dataframe)
     for db_file in db_files:
         for f in files:
-            print(f"Experiment {iteration}/{max_iteration}")
+            print(f"Experiment {iteration}/{max_iteration}: {f}")
             iteration += 1
             try:
                 p = Path(path_benchmark + f).resolve()
