@@ -163,7 +163,12 @@ class ExpectationMaximization:
                             #raise Exception("Found negative table id but no dict was found")
                         #rows = indirect_tables_dict[tuple(table)]
                     #else:
-                    rows = self.dbHandler.fetch_table_columns(table)
+                    try:
+                        rows = self.dbHandler.fetch_table_columns(table)
+                    except ValueError e:
+                        if self.verbose:
+                            print("Table not correctly stored in database")
+                        continue
 
                     # Clean rows dataframe by dropping None/'None'/'none' values
                     #srows = rows.mask(rows.eq('None') | rows.eq('none')).dropna()
