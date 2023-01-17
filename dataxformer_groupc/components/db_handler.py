@@ -140,7 +140,7 @@ class DBHandler:
 
         table = pd.DataFrame()
         for col_id, column_content in table_content.groupby(['ColumnId']):
-            table[col_id] = list(column_content['CellValue'])
+            table[col_id] = column_content['CellValue']
 
         # reorder table by initial col ids
         table = table[row[1:]]
