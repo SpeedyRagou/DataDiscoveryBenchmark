@@ -138,11 +138,14 @@ class DBHandler:
                                          f"AND ColumnID IN ({str(columns_ids)[1:-1]})"
                                          f"ORDER BY ColumnId, RowId ").fetch_df()
 
-        table = pd.DataFrame()
+        #table = pd.DataFrame()
+        column_dict = {}
         for col_id, column_content in table_content.groupby(['ColumnId']):
-            print(table)
-            print(column_content['CellValue'])
-            table[col_id] = list(column_content['CellValue'])
+            column_dict[col_id] = list(column_content['CellValue'])
+            #print(table)
+            #print(column_content['CellValue'])
+            #table[col_id] = list(column_content['CellValue'])
+        table = pd.DataFrame(column_dict)
 
         # reorder table by initial col ids
         table = table[row[1:]]
