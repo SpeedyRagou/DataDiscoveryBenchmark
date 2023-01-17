@@ -256,11 +256,18 @@ class ExpectationMaximization:
             if self.verbose:
                 print(f"######## Delta ########", '\n', f"Delta Score: {delta_score}\n", f"Delta Epsilon: {self.delta_epsilon}")
 
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            self.elapsed_iteration_time.append(elapsed_time)
+
+            if self.verbose:
+                print('Iteration time:', elapsed_time, 's')
+
         # get the end and execution time
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        self.elapsed_iteration_time.append(elapsed_time)
-        print('Iteration time:', elapsed_time, 's')
+        #end_time = time.time()
+        #elapsed_time = end_time - start_time
+        #self.elapsed_iteration_time.append(elapsed_time)
+
 
         if True:
             print(self.__table_scores)
