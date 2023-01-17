@@ -3,7 +3,7 @@ from os.path import isfile, join
 from pathlib import Path
 
 import pandas as pd
-from sklearn.metrics import f1_score
+from sklearn.metrics import precision_recall_fscore_support
 from DataXFormer import DataXFormer
 
 
@@ -49,9 +49,11 @@ if __name__ == "__main__":
 
     db_files = [Path("/home/groupc/gittables.duckdb")]
     f1 = 0
+    recall = 0
+    precision = 0
     iteration = 1
     max_iteration = len(db_files) * len(files)
-    f1_dataframe = pd.DataFrame(columns=["File", "F1-Score", "Time", "Average Iteration Time", "Iteration", "Found Answers"])
+    f1_dataframe = pd.DataFrame(columns=["File", "Precision", "Recall", "F1-Score", "Time", "Average Iteration Time", "Iteration", "Found Answers"])
     print(f1_dataframe)
     for db_file in db_files:
         for f in files:
@@ -72,10 +74,13 @@ if __name__ == "__main__":
                 result_length = transformed_df.dropna(axis=0, how='any', inplace=False).shape[0]
                 # DataXFormer has to return all examples and query values for the following to work
 
-                f1_file = f1_score(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
-                f1 += f1_file
+                precision_file, recall_file, f1_file, support = precision_recall_fscore_support(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
 
-                f1_dataframe.loc[len(f1_dataframe.index)] = [f, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times), len(dataxformer.elapsed_iteration_times), result_length - input_length]
+                f1 += f1_file
+                recall += recall_file
+                precision += precision_file
+
+                f1_dataframe.loc[len(f1_dataframe.index)] = [f, precision_file, recall_file, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times), len(dataxformer.elapsed_iteration_times), result_length - input_length]
                 # Until then ...
                 # f1 += 0.85
                 print(f1_dataframe)
@@ -84,6 +89,11 @@ if __name__ == "__main__":
                 print("An error happend")
                 continue
         f1 /= len(files)
+        recall /= len(files)
+        precision /= len(files)
+
         print(f"Average F1-Score for {db_file.stem}:", f1)
+        print(f"Average Recall for {db_file.stem}:", recall)
+        print(f"Average Precision for {db_file.stem}:", precision_file)
 
         f1_dataframe.to_csv(Path(f"data/f1_results_{db_file.stem}.csv"), index=False)
