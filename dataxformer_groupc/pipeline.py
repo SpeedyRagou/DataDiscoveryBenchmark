@@ -73,6 +73,8 @@ if __name__ == "__main__":
                 input_length = df.dropna(axis=0, how='any', inplace=False).shape[0]
                 result_length = transformed_df.dropna(axis=0, how='any', inplace=False).shape[0]
                 # DataXFormer has to return all examples and query values for the following to work
+                ground_truth.sort_values(ground_truth.columns[0], axis=0, inplace=True)
+                transformed_df.sort_values(transformed_df.columns[0], axis=0, inplace=True)
 
                 precision_file, recall_file, f1_file, support = precision_recall_fscore_support(ground_truth.iloc[:, -1].to_numpy().astype(str)[5:], transformed_df.iloc[:, -1].to_numpy().astype(str)[5:], average='micro')
 
