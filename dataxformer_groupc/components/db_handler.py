@@ -143,7 +143,8 @@ class DBHandler:
         for col_id, column_content in table_content.groupby(['ColumnId']):
             column_dict[col_id] = list(column_content['CellValue'])
             #print(table)
-            #print(column_content['CellValue'])
+            print(column_content['CellValue'])
+            print(len(list(column_content['CellValue'])))
             #table[col_id] = list(column_content['CellValue'])
         table = pd.DataFrame(column_dict)
 
