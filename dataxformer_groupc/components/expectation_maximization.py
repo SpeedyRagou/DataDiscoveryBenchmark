@@ -165,7 +165,7 @@ class ExpectationMaximization:
                     #else:
                     try:
                         rows = self.dbHandler.fetch_table_columns(table)
-                    except ValueError e:
+                    except ValueError:
                         if self.verbose:
                             print("Table not correctly stored in database")
                         continue
