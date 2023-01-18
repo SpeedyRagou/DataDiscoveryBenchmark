@@ -41,7 +41,7 @@ for pair in pairs:
     except Exception:
         continue
 
-    res_df = res_df.drop_duplicates.drop_duplicates(subset=res_df.columns[:res_df.shape[1] - 1])
+    res_df = res_df.drop_duplicates(subset=res_df.columns[:res_df.shape[1] - 1])
     bench_df = bench_df.astype(str).applymap(str.lower)
 
     ex_df = ex_df.dropna()
