@@ -48,7 +48,7 @@ for pair in pairs:
     res_df_r = res_df.dropna()
     print(f"------ For pair {pair} ---------")
     print(f"{ex_df.shape[0]} : {res_df_r.shape[0]}")
-    if ex_df.shape[0] < res_df_r.shape[0]:
+    if ex_df.shape[0] < res_df_r.shape[0] and bench_df.shape[0] == res_df.shape[0]:
         length += 1
         print(f"------ For pair {pair} ---------")
         print(f"{bench_df.shape[0]} : {res_df_r.shape[0]}")
