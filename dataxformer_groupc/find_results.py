@@ -32,10 +32,13 @@ for pair in pairs:
     except Exception:
         continue
 
-    print(f"------ For pair {pair} ---------")
-    print(f"{ex_df.shape[0]} : {res_df.shape[0]}")
 
 
-    print(path_to_results_absolute)
-    print(path_to_examples_absolute)
+    if res_df.shape[0] == ex_df.shape[0]:
+        ex_df = ex_df.dropna()
+        res_df = res_df.dropna()
+
+        print(f"------ For pair {pair} ---------")
+        print(f"{ex_df.shape[0]} : {res_df.shape[0]}")
+
 
