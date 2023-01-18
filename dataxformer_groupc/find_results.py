@@ -64,4 +64,4 @@ for pair in pairs:
         recall += recall_file
         f1 += f1_file
 
-    print(f"Avg. Precision: {precision/length}, Avg. Recall: {recall/length}, Avg. F1: {f1/length}")
+print(f"Avg. Precision: {precision/length}, Avg. Recall: {recall/length}, Avg. F1: {f1/length}")
