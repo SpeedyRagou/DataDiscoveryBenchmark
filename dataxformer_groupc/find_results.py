@@ -56,7 +56,10 @@ for pair in pairs:
 
         bench_df.sort_values(bench_df.columns[0], axis=0, inplace=True)
 
-        precision_file, recall_file, f1_file, support = precision_recall_fscore_support(bench_df.iloc[:, -1].to_numpy().astype(str), res_df.iloc[:, -1].to_numpy().astype(str), average='micro')
+        res_array = res_df.iloc[:, -1].to_numpy().astype(str)
+        res_array[res_array == "NaN"] = None
+
+        precision_file, recall_file, f1_file, support = precision_recall_fscore_support(bench_df.iloc[:, -1].to_numpy().astype(str), res_array, average='micro')
 
         print(f"Precision: {precision_file}, Recall: {recall_file}, F1: {f1_file}")
 
