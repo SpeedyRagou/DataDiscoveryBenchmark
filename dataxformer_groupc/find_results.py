@@ -39,11 +39,11 @@ for pair in pairs:
 
         ex_df = ex_df.dropna()
         res_df_r = res_df.dropna()
-
-        print(f"------ For pair {pair} ---------")
-        print(f"{ex_df.shape[0]} : {res_df_r.shape[0]}")
-        res_df.sort_values(res_df.columns[0], axis=0, inplace=True)
-        print(res_df)
-        bench_df.sort_values(bench_df.columns[0], axis=0, inplace=True)
-        print(bench_df)
+        if ex_df.shape[0] < res_df_r.shape[0]:
+            print(f"------ For pair {pair} ---------")
+            print(f"{ex_df.shape[0]} : {res_df_r.shape[0]}")
+            res_df.sort_values(res_df.columns[0], axis=0, inplace=True)
+            print(res_df)
+            bench_df.sort_values(bench_df.columns[0], axis=0, inplace=True)
+            print(bench_df)
 
