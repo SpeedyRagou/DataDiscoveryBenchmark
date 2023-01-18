@@ -2,6 +2,8 @@ from os import listdir
 from os.path import isfile, join
 from pathlib import Path
 
+import pandas as pd
+
 path_to_examples = Path("./data/examples").resolve()
 
 path_to_results = Path("./data/results").resolve()
@@ -24,6 +26,14 @@ print(pairs)
 for pair in pairs:
     path_to_examples_absolute = path_to_examples.joinpath(pair[0]).resolve()
     path_to_results_absolute = path_to_results.joinpath(pair[1]).resolve()
+
+    res_df = pd.read_csv(path_to_results_absolute, dtype=str, encoding="ISO-8859-1")
+    ex_df = pd.read_csv(path_to_examples_absolute, dtype=str, encoding="ISO-8859-1")
+
+    print(f"------ For pair {pair} ---------")
+    print(f"{ex_df.shape[0]} : {res_df.shape[0]}")
+
+
     print(path_to_results_absolute)
     print(path_to_examples_absolute)
 
