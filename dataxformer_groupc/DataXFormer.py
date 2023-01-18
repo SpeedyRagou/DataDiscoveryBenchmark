@@ -114,7 +114,7 @@ class DataXFormer:
         result = mainLoop.expectation_maximization(examples, inp)
 
         x_columns = list(result.columns[:-2])
-        idx = result.groupby(x_columns)[result.columns[-1]].transform(max).head(1) == result[result.columns[-1]]
+        idx = result.groupby(x_columns)[result.columns[-1]].transform(max) == result[result.columns[-1]]
         result = result[idx]
 
         selection = ""
@@ -130,6 +130,8 @@ class DataXFormer:
                 f"ON ({on_clause}) "
 
         joined_result = duckdb.query(query).to_df()
+
+        return_df = joined_result.drop_duplicates(subset=x_columns)
 
         end_time = time.time()  # get the end time
         self.elapsed_time = end_time - start_time  # get the execution time
@@ -148,10 +150,10 @@ class DataXFormer:
             print("---------------------------------------------")
             print("Joined result")
             print("---------------------------------------------")
-            print(joined_result)
+            print(return_df)
             print("---------------------------------------------")
 
-        return joined_result
+        return return_df
 
 
 if __name__ == '__main__':
