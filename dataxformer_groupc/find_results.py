@@ -20,3 +20,10 @@ for f in files:
             break
 
 print(pairs)
+
+for pair in pairs:
+    path_to_examples_absolute = path_to_examples.joinpath(pair[0]).resolve()
+    path_to_results_absolute = path_to_results.joinpath(pair[1]).resolve()
+    print(path_to_results_absolute)
+    print(path_to_examples_absolute)
+
