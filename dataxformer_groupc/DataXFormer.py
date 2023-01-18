@@ -114,7 +114,7 @@ class DataXFormer:
         result = mainLoop.expectation_maximization(examples, inp)
 
         x_columns = list(result.columns[:-2])
-        idx = result.groupby(x_columns)[result.columns[-1]].transform(max) == result[result.columns[-1]]
+        idx = result.groupby(x_columns)[result.columns[-1]].transform(max).head(1) == result[result.columns[-1]]
         result = result[idx]
 
         selection = ""
