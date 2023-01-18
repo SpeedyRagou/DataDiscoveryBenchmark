@@ -51,7 +51,7 @@ for pair in pairs:
     if ex_df.shape[0] < res_df_r.shape[0]:
         length += 1
         print(f"------ For pair {pair} ---------")
-        print(f"{ex_df.shape[0]} : {res_df_r.shape[0]}")
+        print(f"{bench_df.shape[0]} : {res_df_r.shape[0]}")
         res_df.sort_values(res_df.columns[0], axis=0, inplace=True)
 
         bench_df.sort_values(bench_df.columns[0], axis=0, inplace=True)
