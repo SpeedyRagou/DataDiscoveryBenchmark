@@ -26,9 +26,11 @@ print(pairs)
 for pair in pairs:
     path_to_examples_absolute = path_to_examples.joinpath(pair[0]).resolve()
     path_to_results_absolute = path_to_results.joinpath(pair[1]).resolve()
-
-    res_df = pd.read_csv(path_to_results_absolute, dtype=str, encoding="ISO-8859-1")
-    ex_df = pd.read_csv(path_to_examples_absolute, dtype=str, encoding="ISO-8859-1")
+    try:
+        res_df = pd.read_csv(path_to_results_absolute, dtype=str, encoding="ISO-8859-1")
+        ex_df = pd.read_csv(path_to_examples_absolute, dtype=str, encoding="ISO-8859-1")
+    except Exception:
+        continue
 
     print(f"------ For pair {pair} ---------")
     print(f"{ex_df.shape[0]} : {res_df.shape[0]}")
