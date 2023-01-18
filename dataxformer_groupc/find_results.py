@@ -40,5 +40,7 @@ for pair in pairs:
 
         print(f"------ For pair {pair} ---------")
         print(f"{ex_df.shape[0]} : {res_df.shape[0]}")
+        print(ex_df)
+        print(res_df)
 
 
