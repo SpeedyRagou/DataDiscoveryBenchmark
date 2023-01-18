@@ -51,6 +51,7 @@ if __name__ == "__main__":
     f1 = 0
     recall = 0
     precision = 0
+    length = 0
     iteration = 1
     max_iteration = len(db_files) * len(files)
     f1_dataframe = pd.DataFrame(columns=["File", "Precision", "Recall", "F1-Score", "Time", "Average Iteration Time", "Iteration", "Found Answers"])
@@ -81,9 +82,13 @@ if __name__ == "__main__":
 
                 precision_file, recall_file, f1_file, support = precision_recall_fscore_support(ground_truth.iloc[:, -1].to_numpy().astype(str), transformed_df.iloc[:, -1].to_numpy().astype(str), average='micro')
 
-                f1 += f1_file
-                recall += recall_file
-                precision += precision_file
+                if result_length - input_length > 0:
+
+                    f1 += f1_file
+                    recall += recall_file
+                    precision += precision_file
+
+                    length += 1
 
                 f1_dataframe.loc[len(f1_dataframe.index)] = [f, precision_file, recall_file, f1_file, dataxformer.elapsed_time, sum(dataxformer.elapsed_iteration_times)/len(dataxformer.elapsed_iteration_times), len(dataxformer.elapsed_iteration_times), result_length - input_length]
                 # Until then ...
@@ -93,9 +98,9 @@ if __name__ == "__main__":
             except:
                 print("An error happend")
                 continue
-        f1 /= len(files)
-        recall /= len(files)
-        precision /= len(files)
+        f1 /= length
+        recall /= length
+        precision /= length
 
         print(f"Average F1-Score for {db_file.stem}:", f1)
         print(f"Average Recall for {db_file.stem}:", recall)
