@@ -18,3 +18,5 @@ for f in files:
         if f[:len(f) - 4] in f_res:
             pairs.append((f, f_res))
             break
+
+print(pairs)
