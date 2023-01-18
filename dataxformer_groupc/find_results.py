@@ -52,9 +52,9 @@ for pair in pairs:
         length += 1
         print(f"------ For pair {pair} ---------")
         print(f"{ex_df.shape[0]} : {res_df_r.shape[0]}")
-        res_df.sort_values(res_df.columns[:res_df.shape[1] - 1], axis=0, inplace=True)
+        res_df.sort_values(res_df.columns[0], axis=0, inplace=True)
 
-        bench_df.sort_values(bench_df.columns[:res_df.shape[1] - 1], axis=0, inplace=True)
+        bench_df.sort_values(bench_df.columns[0], axis=0, inplace=True)
 
         precision_file, recall_file, f1_file, support = precision_recall_fscore_support(bench_df.iloc[:, -1].to_numpy().astype(str), res_df.iloc[:, -1].to_numpy().astype(str), average='micro')
 
